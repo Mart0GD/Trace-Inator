@@ -10,11 +10,11 @@ class tagged_pointer {
 public:
     using Types = type_pack<Ts...>; // <- alias for all the defined types
 
-    constexpr tagged_pointer()                  : bits(0) {};
-    constexpr tagged_pointer(std::nullptr_t)    : bits(0) {};
+    constexpr tagged_pointer()                      : bits(0) {};
+    constexpr tagged_pointer(std::nullptr_t)        : bits(0) {};
 
     template<typename T>
-    tagged_pointer(const T* ptr)
+    explicit tagged_pointer(const T* ptr)
     {
         static_assert(alignof(T) >= 8);
 
