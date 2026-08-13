@@ -1,4 +1,5 @@
 #include "geometry/mesh.hpp"
+#include "scene.hpp"
 
 bool mesh::trace(const ray& r, double t_min, double t_max, hit_record& rec) const
 {
@@ -45,7 +46,7 @@ bool mesh::trace(const ray& r, double t_min, double t_max, hit_record& rec) cons
     return hit_anything;
 }
 
-void mesh::parse_from_json(const rapidjson::Value& root)
+void mesh::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx)
 {
     ASSERT_OR_THROW(root.IsObject());
 
@@ -105,24 +106,33 @@ void mesh::parse_from_json(const rapidjson::Value& root)
     }
 
     for(vec3& vtx: this->v_normals) vtx = unit_vector(vtx);
+    this->mat = &ctx.materials[material_index_itt->value.GetInt()];
     
-    if(uvs_itt != root.MemberEnd())
-    {   
-        const rapidjson::Value& uvs = uvs_itt->value;
-        const size_t uvs_size = uvs.Size();   
-
-        this->uvs.reserve(uvs_size / 3);
-        for (size_t i = 0; i < uvs_size; i+=3)
+    switch (ctx.version)
+    {
+        case 2:
         {
-            this->uvs.push_back(point3D(
-                uvs[i].GetDouble(),
-                uvs[i + 1].GetDouble(),
-                uvs[i + 2].GetDouble()
-            ));
-        }
+            ASSERT_OR_THROW(uvs_itt != root.MemberEnd());
+
+            const rapidjson::Value& uvs = uvs_itt->value;
+            const size_t uvs_size = uvs.Size();   
+
+            this->uvs.reserve(uvs_size / 3);
+            for (size_t i = 0; i < uvs_size; i+=3)
+            {
+                this->uvs.push_back(point3D(
+                    uvs[i].GetDouble(),
+                    uvs[i + 1].GetDouble(),
+                    uvs[i + 2].GetDouble()
+                ));
+            }
+        } break;
+        case 1:
+        {
+            // one pixel for the albedo effect
+            this->uvs = std::vector<point3D>(v_size / 3, {0,0,0});
+        } break;
     }
-    
-    this->material_id = material_index_itt->value.GetInt();
 }
 
 bool mesh::triangle_hit(
@@ -159,7 +169,7 @@ bool mesh::triangle_hit(
 
     rec.t = t;
     rec.point = r.at(t);
-    rec.material_id = material_id;
+    rec.mat = mat;
     rec.baryU = u;
     rec.baryV = v;
 

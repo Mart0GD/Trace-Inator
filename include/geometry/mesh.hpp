@@ -4,8 +4,12 @@
 #include "utils/constants.hpp"
 #include "hitable.hpp"
 #include "geometry/hitable.hpp"
+#include "material.hpp"
 
 #include <vector>
+
+// Forward declaration
+struct parse_ctx;
 
 struct triangle_context 
 {
@@ -16,10 +20,10 @@ struct triangle_context
 
 class mesh{
 public:
-    void parse_from_json(const rapidjson::Value& info);
+    void parse_from_json(const rapidjson::Value& info, const parse_ctx& ctx);
     bool trace(const ray& r, double t_min, double t_max, hit_record& rec) const;
 
-    inline int32_t get_material_id() const { return material_id; }
+    inline const material* get_material() const { return mat; }
 
 private:
 
@@ -36,7 +40,7 @@ private:
     std::vector<point3D>    uvs;        // uv coordinates data
     std::vector<vec3>       v_normals;  // vertex normals
     std::vector<int>        tvi;        // triangle vertex indicies 
-    int32_t                 material_id;
+    const material         *mat = nullptr;
 };
 
 #endif
