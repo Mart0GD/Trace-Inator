@@ -57,22 +57,18 @@ void mesh::parse_from_json(const rapidjson::Value& root)
     ASSERT_OR_THROW(
         triangles_itt != root.MemberEnd()       && triangles_itt->value.IsArray()   &&
         verticies_itt != root.MemberEnd()       && verticies_itt->value.IsArray()   &&
-        uvs_itt       != root.MemberEnd()       && uvs_itt->value.IsArray()         &&
         material_index_itt != root.MemberEnd()  && material_index_itt->value.IsInt()
     );
 
     const rapidjson::Value& verticies = verticies_itt->value;
     const rapidjson::Value& triangles = triangles_itt->value;
-    const rapidjson::Value& uvs       = uvs_itt->value;
 
     const size_t v_size     = verticies.Size();
     const size_t t_size     = triangles.Size();
-    const size_t uvs_size   = uvs.Size();
 
     ASSERT_OR_THROW(
         v_size > 0   && v_size % 3 == 0  &&
-        t_size > 0   && t_size % 3 == 0  &&
-        uvs_size == v_size
+        t_size > 0   && t_size % 3 == 0 
     );
 
     this->verticies.reserve(v_size / 3);
@@ -110,14 +106,20 @@ void mesh::parse_from_json(const rapidjson::Value& root)
 
     for(vec3& vtx: this->v_normals) vtx = unit_vector(vtx);
     
-    this->uvs.reserve(uvs_size / 3);
-    for (size_t i = 0; i < uvs_size; i+=3)
-    {
-        this->uvs.push_back(point3D(
-            uvs[i].GetDouble(),
-            uvs[i + 1].GetDouble(),
-            uvs[i + 2].GetDouble()
-        ));
+    if(uvs_itt != root.MemberEnd())
+    {   
+        const rapidjson::Value& uvs = uvs_itt->value;
+        const size_t uvs_size = uvs.Size();   
+
+        this->uvs.reserve(uvs_size / 3);
+        for (size_t i = 0; i < uvs_size; i+=3)
+        {
+            this->uvs.push_back(point3D(
+                uvs[i].GetDouble(),
+                uvs[i + 1].GetDouble(),
+                uvs[i + 2].GetDouble()
+            ));
+        }
     }
     
     this->material_id = material_index_itt->value.GetInt();
