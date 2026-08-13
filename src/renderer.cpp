@@ -6,6 +6,77 @@ void renderer::render(std::ostream& os) {
 
     double width = settings.width;
     double height = settings.height;
+    size_t bucket_size = settings.bucket_size;
+
+//  -- PREPARE BUCKETS --
+
+    std::vector<color> image_buffer(width * height);
+    std::vector<bucket> buckets;
+
+    for (size_t x = 0; x < width; x += bucket_size)
+    {
+        for (size_t y = 0; y < height; y+= bucket_size)
+        {
+            bucket b;
+            b.min_x = x;
+            b.max_x = std::min((size_t)width, x + bucket_size);
+
+            b.min_y = y;
+            b.max_y = std::min((size_t)height, y + bucket_size);
+
+            buckets.push_back(std::move(b));
+        }
+        
+    }
+    
+//  -- RENDER --
+
+    std::mutex m;
+    std::condition_variable var;
+    std::atomic<size_t> bucket_index = 0;
+    std::atomic<size_t> completed_buckets = 0;
+
+    for (size_t i = 0; i < pool.workers_count(); ++i)
+    {
+        pool.enqueue([&]
+        {
+            while (true)
+            {
+                size_t index = bucket_index.fetch_add(1);
+                if(index >= buckets.size()) break;
+
+                const bucket& b = buckets[index];
+
+                for (int y = b.min_y; y < b.max_y; ++y)
+                {
+                    for (int x = b.min_x; x < b.max_x; ++x)
+                    {
+                        ray r = camera.get_ray(x,y);
+
+                        color c = shade(r);
+                        image_buffer[y * width + x] = std::move(c);
+                    }
+                }
+
+                // One bucket rendered
+                if(++completed_buckets == buckets.size())
+                {
+                    std::unique_lock<std::mutex> lock(m);
+                    var.notify_one();
+                }
+            }
+            
+        });
+    }
+
+    // Wait for the pool to finish
+    std::unique_lock<std::mutex> lock(m);
+    var.wait(lock, [&]
+    {
+        return completed_buckets.load() == buckets.size();
+    });
+    
+//  -- OUTPUT IMAGE BUFFER --
 
     os << "P3\n" << width << ' ' << height << "\n255\n";
 
@@ -13,10 +84,7 @@ void renderer::render(std::ostream& os) {
     {
         for (int j = 0; j < width; j++)
         {
-            ray r = camera.get_ray(j, i);
-
-            color c = shade(r);
-            print_color(os, c);
+            print_color(os, image_buffer[i * width + j]);
         }
     }
 }
@@ -192,4 +260,9 @@ double renderer::schlick(double n1, double n2, double cos_a)
 {
     double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
     return Ro + (1 - Ro) * pow(1 - cos_a, 5);
+}
+
+void renderer::render_bucket(const bucket& b, const std::vector<color>& image_buffer)
+{
+    
 }
