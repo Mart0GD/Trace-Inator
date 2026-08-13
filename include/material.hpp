@@ -2,9 +2,13 @@
 #define __MATERIAL_HPP_INCLUDED__
 
 #include "utils/constants.hpp"
+#include "texture.hpp"
 #include "geometry/hitable.hpp"
 
 #include <unordered_map>
+
+// Forward declaration
+struct parse_ctx;
 
 enum material_type
 {
@@ -27,12 +31,12 @@ inline static const std::unordered_map<std::string, material_type> m_types = {
 
 struct material
 {
-    material_type type      = MAT_CONSTANT;  // material type
-    std::string   albedo;                    // texture name for albedo 
-    bool smooth_shading     = false;         // shade with vertex normals
-    double ior              = 1;             // index of refraction
+    material_type  type      = MAT_CONSTANT;  // material type
+    texture_handle albedo;
+    bool smooth_shading      = false;         // shade with vertex normals
+    double ior               = 1;             // index of refraction
 
-    void parse_from_json(const rapidjson::Value& root);
+    void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
 };
 
 #endif
