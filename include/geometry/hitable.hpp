@@ -3,6 +3,9 @@
 
 #include "utils/constants.hpp"
 
+// Forward declaration
+struct material;
+
 struct hit_record
 {
     point3D point;                              // <- 3D point of where the ray hits the geometry
@@ -10,7 +13,7 @@ struct hit_record
     vec3    geometric_normal;                   // <- the face normal of the geometry
     
     double  t;                                  // <- distance in time from the origin
-    size_t  material_id;                        // <- material in the scene (no copies in mesh)
+    const material* mat;                        // <- material in the scene (no copies in mesh)
     double  baryU,baryV;                        // <- barycentric coordinates
     point3D pUV;                                // <- interpolated u,v coordinates
 };
