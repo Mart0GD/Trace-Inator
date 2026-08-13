@@ -21,6 +21,19 @@ scene::scene(const std::string& scene_file_name)
 
 void scene::parse_from_json(const rapidjson::Value& root)
 {
+    const auto version_itt = root.FindMember(JSON_VERSION);
+    ASSERT_OR_THROW(version_itt != root.MemberEnd());
+
+    size_t version = version_itt->value.GetInt(); 
+
+    parse_ctx ctx = 
+    {
+        this->arena,
+        version,
+        this->textures,
+        this->materials,
+    };
+
     const auto camera_itt   = root.FindMember(JSON_CAMERA);
     const auto settings_itt = root.FindMember(JSON_SETTINGS);
 
@@ -29,8 +42,8 @@ void scene::parse_from_json(const rapidjson::Value& root)
         settings_itt != root.MemberEnd()
     );
 
-    cam.parse_from_json(camera_itt->value);        // Camera initialization
-    settings.parse_from_json(settings_itt->value); // Settings initialization
+    cam.parse_from_json(camera_itt->value, ctx);        // Camera initialization
+    settings.parse_from_json(settings_itt->value, ctx); // Settings initialization
 
 // -- SCENE MEMBERS --
 
@@ -39,63 +52,68 @@ void scene::parse_from_json(const rapidjson::Value& root)
     const auto materials_itt    = root.FindMember(JSON_MATERIALS); 
     const auto textures_itt     = root.FindMember(JSON_TEXTURES);
 
-    ASSERT_OR_THROW(
-        objects_itt     != root.MemberEnd() && 
-        lights_itt      != root.MemberEnd() &&
-        materials_itt   != root.MemberEnd() &&
-        textures_itt    != root.MemberEnd() &&
-        objects_itt->value.IsArray()        &&
-        lights_itt->value.IsArray()         &&
-        materials_itt->value.IsArray()
-    );
-
-    const size_t materials_cnt = materials_itt->value.Size();
-    ASSERT_OR_THROW(materials_cnt != 0);
-
-    this->materials.reserve(materials_cnt);
-    for (size_t i = 0; i < materials_cnt; i++)
+    switch (version)
     {
-        material mat;
-        mat.parse_from_json(materials_itt->value[i]);
-        
-        this->materials.push_back(std::move(mat));
-    }
+        case 2:
+        {
+            size_t textures_cnt = textures_itt->value.Size();
+            ASSERT_OR_THROW(textures_cnt != 0);
 
-    const size_t lights_cnt = lights_itt->value.Size();
-    ASSERT_OR_THROW(lights_cnt != 0);   
+            textures.reserve(textures_cnt);
+            for (size_t i = 0; i < textures_cnt; i++)
+            {
+                texture_handle handle;
+                handle.parse_from_json(textures_itt->value[i], ctx);
+                
+                this->textures.push_back(std::move(handle));
+            }
 
-    this->lights.reserve(lights_cnt);
-    for (size_t i = 0; i < lights_cnt; i++)
-    {
-        light current_light;
-        current_light.parse_from_json(lights_itt->value[i]);
-        
-        this->lights.push_back(std::move(current_light));
-    }
+        };
+        case 1:
+        {
+            if(materials_itt != root.MemberEnd())
+            {
+                const size_t materials_cnt = materials_itt->value.Size();
 
-    const size_t meshes_cnt = objects_itt->value.Size();
-    ASSERT_OR_THROW(meshes_cnt != 0);   
+                this->materials.reserve(materials_cnt);
+                for (size_t i = 0; i < materials_cnt; i++)
+                {
+                    material mat;
+                    mat.parse_from_json(materials_itt->value[i], ctx);
+                    
+                    this->materials.push_back(std::move(mat));
+                }
+            }
 
-    geometry.reserve(meshes_cnt);
-    for (size_t i = 0; i < meshes_cnt; i++)
-    {
-        mesh current_mesh;
-        current_mesh.parse_from_json(objects_itt->value[i]);
-        ASSERT_OR_THROW(current_mesh.get_material_id() >= 0 && current_mesh.get_material_id() < materials_cnt);
+            if(objects_itt != root.MemberEnd())
+            {
+                const size_t meshes_cnt = objects_itt->value.Size();
 
-        geometry.push_back(std::move(current_mesh));
-    }
-    
-    size_t textures_cnt = textures_itt->value.Size();
-    ASSERT_OR_THROW(textures_cnt != 0);
+                geometry.reserve(meshes_cnt);
+                for (size_t i = 0; i < meshes_cnt; i++)
+                {
+                    mesh current_mesh;
+                    current_mesh.parse_from_json(objects_itt->value[i], ctx);
 
-    textures.reserve(textures_cnt);
-    for (size_t i = 0; i < textures_cnt; i++)
-    {
-        texture_handle handle;
-        handle.parse_from_json(textures_itt->value[i], arena);
-        
-        this->textures.push_back(std::move(handle));
+                    geometry.push_back(std::move(current_mesh));
+                }
+            }
+
+            if (lights_itt != root.MemberEnd())
+            {
+                const size_t lights_cnt = lights_itt->value.Size();
+
+                this->lights.reserve(lights_cnt);
+                for (size_t i = 0; i < lights_cnt; i++)
+                {
+                    light current_light;
+                    current_light.parse_from_json(lights_itt->value[i], ctx);
+                    
+                    this->lights.push_back(std::move(current_light));
+                }
+            }
+
+        } break;
     }
 }
 
@@ -111,7 +129,7 @@ bool scene::trace(const ray& r, double t_min, double t_max, hit_record& rec) con
         {
             // temporary logic --> refractive objects don't stop light
             // TODO: add refractive influence on shadowing
-            if(r.type == RT_SHADOW && materials[m.get_material_id()].type == MAT_REFRACTIVE) continue;
+            if(r.type == RT_SHADOW && m.get_material()->type == MAT_REFRACTIVE) continue;
 
 
             hit_anything = true;
@@ -132,29 +150,41 @@ texture_handle scene::get_texture(const std::string& name) const
     ASSERT_OR_THROW(false);
 }
 
-void scene_settings::parse_from_json(const rapidjson::Value& root) 
+void scene_settings::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx) 
 {
     ASSERT_OR_THROW(root.IsObject());
     
-    auto bg_itt = root.FindMember(JSON_SETTINGS_BG);
-    auto image_settings_itt = root.FindMember(JSON_SETTINGS_IMAGE);
+    switch (ctx.version)
+    {
+        case 3:
+        {
 
-    ASSERT_OR_THROW(
-        bg_itt != root.MemberEnd()              && bg_itt->value.IsArray()              &&
-        image_settings_itt != root.MemberEnd()  && image_settings_itt->value.IsObject()
-    );
+        }
+        case 1: case 2:
+        {
+            const auto bg_itt = root.FindMember(JSON_SETTINGS_BG);
+            const auto image_settings_itt = root.FindMember(JSON_SETTINGS_IMAGE);
 
-    const rapidjson::Value& image_settings = image_settings_itt->value;
-    
-    auto width_itt = image_settings.FindMember(JSON_SETTINGS_IMAGE_WIDTH);
-    auto height_itt = image_settings.FindMember(JSON_SETTINGS_IMAGE_HEIGHT);
-    
-    ASSERT_OR_THROW(
-        width_itt  != image_settings.MemberEnd() && 
-        height_itt != image_settings.MemberEnd()
-    );
-    
-    this->width      = width_itt->value.GetDouble();
-    this->height     = height_itt->value.GetDouble();
-    this->background = parse_vector(bg_itt->value.GetArray());
+            // Has BG
+            if(bg_itt != root.MemberEnd()) 
+            {
+                ASSERT_OR_THROW(bg_itt->value.IsArray());
+                this->background = parse_vector(bg_itt->value.GetArray());
+            }
+
+            // Has settings (may be empty)
+            if(image_settings_itt != root.MemberEnd())
+            {
+                const rapidjson::Value& image_settings = image_settings_itt->value;
+                ASSERT_OR_THROW(image_settings.IsObject());
+
+                const auto width_itt = image_settings.FindMember(JSON_SETTINGS_IMAGE_WIDTH);
+                const auto height_itt = image_settings.FindMember(JSON_SETTINGS_IMAGE_HEIGHT);
+
+                if(width_itt != image_settings.MemberEnd())  this->width = width_itt->value.GetDouble();
+                if(height_itt != image_settings.MemberEnd()) this->height = height_itt->value.GetDouble();
+            }
+        } break;
+    }
+
 }
