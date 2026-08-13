@@ -12,7 +12,7 @@ class renderer {
 public:
     void render(std::ostream& os = std::cout);
 
-    const scene* world;
+    scene* world;
 
 private:
 

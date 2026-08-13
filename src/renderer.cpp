@@ -1,8 +1,5 @@
 #include "renderer.hpp"
 
-static std::mt19937 rng(std::random_device{}());
-static std::uniform_real_distribution<double> interval(0.0, 1.0);
-
 void renderer::render(std::ostream& os) {
     const camera& camera = world->cam;
     const scene_settings& settings  = world->settings;
@@ -40,14 +37,13 @@ color renderer::shade(const ray& r) const
 #ifndef _DEBUG
 
     color final_color;
-    const material& mat = world->materials[info.material_id];
+    const material* mat = info.mat;
 
-    switch (mat.type)
+    switch (mat->type)
     {
         case MAT_CONSTANT: 
         {
-            // final_color = world->textures.at(mat.albedo).evaluate(info);
-            final_color = world->get_texture(mat.albedo).evaluate(info);
+            final_color = mat->albedo.evaluate(info);
         } break;
 
         case MAT_DIFFUSIVE:
@@ -79,11 +75,11 @@ color renderer::shade(const ray& r) const
 
 color renderer::shade_diffusive(const ray& r, const hit_record& info) const
 {
-    const material& mat = world->materials[info.material_id];
+    const material* mat = info.mat;
 
     const size_t lights_cnt = world->lights.size();
-    const color  albedo = world->get_texture(mat.albedo).evaluate(info);
-    const vec3   normal = mat.smooth_shading ? info.hit_normal : info.geometric_normal;
+    const color  albedo = mat->albedo.evaluate(info);
+    const vec3   normal = mat->smooth_shading ? info.hit_normal : info.geometric_normal;
 
     color final_color;
 
@@ -116,10 +112,10 @@ color renderer::shade_diffusive(const ray& r, const hit_record& info) const
 
 color renderer::shade_reflective(const ray& r, const hit_record& info) const
 {
-    const material& mat = world->materials[info.material_id];
-    const color albedo = world->get_texture(mat.albedo).evaluate(info);
+    const material* mat = info.mat;
+    const color albedo = mat->albedo.evaluate(info);
 
-    vec3 N = mat.smooth_shading ? info.hit_normal : info.geometric_normal;
+    vec3 N = mat->smooth_shading ? info.hit_normal : info.geometric_normal;
     vec3 A = r.direction;
 
     vec3 new_direction = A - 2 * dot(A,N) * N;
@@ -136,12 +132,12 @@ color renderer::shade_reflective(const ray& r, const hit_record& info) const
 
 color renderer::shade_refractive(const ray& r, const hit_record& info) const 
 {
-    const material& mat = world->materials[info.material_id];
+    const material* mat = info.mat;
 
     vec3 I = unit_vector(r.direction);
-    vec3 N = mat.smooth_shading ? info.hit_normal : info.geometric_normal;
+    vec3 N = mat->smooth_shading ? info.hit_normal : info.geometric_normal;
     double n1 = r.ior;
-    double n2 = mat.ior;
+    double n2 = mat->ior;
 
     if(dot(r.direction, N) > 0) 
     {

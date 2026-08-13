@@ -3,7 +3,7 @@
 
 #include "utils/constants.hpp"
 #include "geometry/mesh.hpp"
-#include "utils/allocator.hpp"
+#include "memory/allocator.hpp"
 
 #include "light.hpp"
 #include "camera.hpp"

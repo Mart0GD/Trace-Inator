@@ -2,9 +2,9 @@
 #define __TEXTURE_HPP_INCLUDED__
 
 #include "utils/constants.hpp"
-#include "utils/tagged_pointer.hpp"
+#include "memory/tagged_pointer.hpp"
 #include "geometry/hitable.hpp"
-#include "utils/allocator.hpp"
+#include "memory/allocator.hpp"
 
 #include <unordered_map>
 
