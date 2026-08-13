@@ -29,6 +29,7 @@ inline static constexpr char  JSON_SETTINGS_BG[]                    = "backgroun
 inline static constexpr char  JSON_SETTINGS_IMAGE[]                 = "image_settings";
 inline static constexpr char  JSON_SETTINGS_IMAGE_WIDTH[]           = "width";
 inline static constexpr char  JSON_SETTINGS_IMAGE_HEIGHT[]          = "height";
+inline static constexpr char  JSON_SETTINGS_BUCKET_SIZE[]           = "bucket_size";
 
 inline static constexpr char  JSON_CAMERA[]                         = "camera";
 inline static constexpr char  JSON_CAMERA_MATRIX[]                  = "matrix";
