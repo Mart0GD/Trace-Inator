@@ -3,6 +3,9 @@
 
 #include "utils/constants.hpp"
 
+// Forward declaration
+struct parse_ctx;
+
 class camera {
 public:
 
@@ -23,7 +26,7 @@ public:
 
 // -- SERIALIZATION --
 
-    void parse_from_json(const rapidjson::Value& root);
+    void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
 
 private:
 

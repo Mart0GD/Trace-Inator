@@ -71,38 +71,45 @@ void camera::translate(const vec3& dir)
     position += world_space_dir;
 }
 
-void camera::parse_from_json(const rapidjson::Value& root) 
+void camera::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx) 
 {   
     ASSERT_OR_THROW(root.IsObject());
 
-    auto matrix_itt     = root.FindMember(JSON_CAMERA_MATRIX);
-    auto position_itt   = root.FindMember(JSON_CAMERA_POSITION);
-    auto v_fov_itt      = root.FindMember(JSON_CAMERA_FOV);
-
-    ASSERT_OR_THROW(
-        matrix_itt      != root.MemberEnd()  &&
-        position_itt    != root.MemberEnd()  &&
-        v_fov_itt       != root.MemberEnd()
-    );
-
-    const rapidjson::Value& matrix      = matrix_itt->value;    
-    const rapidjson::Value& position    = position_itt->value;
-    const rapidjson::Value& v_fov       = v_fov_itt->value;
-    
-    ASSERT_OR_THROW(
-        matrix.IsArray()    && matrix.Size() == 9 &&
-        position.IsArray()  && position.Size() == 3
-    );
-
-    this->position = parse_vector(position.GetArray());
-    this->fov = v_fov.GetDouble();
-
-    int32_t size = matrix.Size();
-    for (int i = 0; i < size; i++)
+    switch (ctx.version)
     {
-        this->rotation_matrix[i / 3][i % 3] = matrix[i].GetDouble();
+        case 3:
+        {
+            const auto fov_itt = root.FindMember(JSON_CAMERA_FOV);
+
+            // Has FOV
+            if(fov_itt != root.MemberEnd()) this->fov = fov_itt->value.GetDouble();
+        }
+        case 1: case 2:
+        {
+            const auto matrix_itt     = root.FindMember(JSON_CAMERA_MATRIX);
+            const auto position_itt   = root.FindMember(JSON_CAMERA_POSITION);
+
+            // Has Matrix
+            if(matrix_itt != root.MemberEnd())
+            {
+                const rapidjson::Value& matrix      = matrix_itt->value;    
+                ASSERT_OR_THROW(matrix.IsArray() && matrix.Size() == 9);
+
+                for (size_t i = 0; i < matrix.Size(); ++i)
+                {
+                    this->rotation_matrix[i / 3][i % 3] = matrix[i].GetDouble();
+                }
+                
+            }
+
+            // Has position 
+            if(position_itt != root.MemberEnd())
+            {
+                ASSERT_OR_THROW(position_itt->value.IsArray());
+                this->position = parse_vector(position_itt->value.GetArray());
+            }
+        } break;
     }
-    
 }
 
 ray camera::get_ray(double u, double v) const
