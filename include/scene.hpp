@@ -26,6 +26,7 @@ struct scene_settings {
 
     double width         = 800;
     double height        = 400;
+    double bucket_size   = 32;
     color  background    = {0,0,0};
     
     void parse_from_json(const rapidjson::Value& info, const parse_ctx& version);

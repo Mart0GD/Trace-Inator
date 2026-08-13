@@ -158,7 +158,9 @@ void scene_settings::parse_from_json(const rapidjson::Value& root, const parse_c
     {
         case 3:
         {
+            const auto bucket_size_itt = root.FindMember(JSON_SETTINGS_BUCKET_SIZE);
 
+            if(bucket_size_itt != root.MemberEnd()) this->bucket_size = bucket_size_itt->value.GetInt();
         }
         case 1: case 2:
         {
