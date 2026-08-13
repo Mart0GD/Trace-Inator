@@ -1,0 +1,44 @@
+{
+	"settings": {
+		"background_color": [0, 0, 0],		
+		"image_settings": {
+			"width": 1920,
+			"height": 1080
+		}
+	},
+	"camera": {
+		"matrix": [
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+		],		
+		"position": [0, 0, 0],
+		"fov": 90
+	},
+	"lights": [		
+		{
+			"intensity": 1000,
+			"position": [5, 5, 6]
+		}
+	],
+	"materials": [
+		{
+			"type": "diffuse",
+			"albedo": [1, 1, 1],
+			"smooth_shading": false
+		}	
+	],
+	"objects": [
+		{
+			"material_index": 0,		
+			"vertices": [
+				-1.75, -1.75, -3,
+				 1.75, -1.75, -3,
+				 0.00,  1.75, -3
+			],			
+			"triangles": [
+				0, 1, 2
+			]
+		}
+	]
+}
