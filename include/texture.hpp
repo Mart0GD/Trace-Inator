@@ -8,6 +8,9 @@
 
 #include <unordered_map>
 
+// Forward declaration
+struct parse_ctx;
+
 struct albedo_texture
 {
     color albedo;
@@ -76,7 +79,7 @@ struct texture_handle
     std::string name;
 
     color evaluate(const hit_record& info) const;
-    void parse_from_json(const rapidjson::Value& info, allocator& arena);
+    void parse_from_json(const rapidjson::Value& info, const parse_ctx& ctx);
 };
 
 #endif

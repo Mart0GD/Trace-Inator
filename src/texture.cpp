@@ -1,7 +1,9 @@
 #include "texture.hpp"
+#include "scene.hpp"
 
 #include <algorithm>
 
+// STB 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -70,7 +72,7 @@ void bitmap_texture::parse_from_json(const rapidjson::Value& info)
     this->buffer = stbi_load(file_path.c_str(), &width, &height, &channels, 0);
 }
 
-void texture_handle::parse_from_json(const rapidjson::Value& info, allocator& arena)
+void texture_handle::parse_from_json(const rapidjson::Value& info, const parse_ctx& ctx)
 {
     ASSERT_OR_THROW(info.IsObject());
 
@@ -90,28 +92,28 @@ void texture_handle::parse_from_json(const rapidjson::Value& info, allocator& ar
     {
         case TT_ALBEDO:
         {
-            albedo_texture* at = arena.alloc<albedo_texture>();
+            albedo_texture* at = ctx.al.alloc<albedo_texture>();
             at->parse_from_json(info);
 
             this->ptr = Texture(at); 
         } break;
         case TT_CHECKER:    
         {
-            checker_texture* ct = arena.alloc<checker_texture>();
+            checker_texture* ct = ctx.al.alloc<checker_texture>();
             ct->parse_from_json(info);
 
             this->ptr = Texture(ct); 
         } break;
         case TT_EDGES:      
         {
-            edges_texture* et = arena.alloc<edges_texture>();
+            edges_texture* et = ctx.al.alloc<edges_texture>();
             et->parse_from_json(info);
 
             this->ptr = Texture(et); 
         } break;
         case TT_BITMAP:    
         {
-            bitmap_texture* bt = arena.alloc<bitmap_texture>();
+            bitmap_texture* bt = ctx.al.alloc<bitmap_texture>();
             bt->parse_from_json(info);
 
             this->ptr = Texture(bt); 
