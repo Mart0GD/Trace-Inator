@@ -3,12 +3,15 @@
 
 #include "utils/constants.hpp"
 
+// Forward declaration
+struct parse_ctx;
+
 struct light {
 
-    point3D position;
-    double  intensity;
+    point3D position = {0,0,0};
+    double  intensity = 300;
     
-    void parse_from_json(const rapidjson::Value& root);
+    void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
 };
 
 #endif
