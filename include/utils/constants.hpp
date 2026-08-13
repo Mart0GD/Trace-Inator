@@ -19,9 +19,10 @@
 
 static constexpr double       PI = 3.1415926535897932385;
 static constexpr double       INF = std::numeric_limits<double>::infinity();
-static constexpr int32_t      INVALID_MATERIAL_ID = -1;
 
 static const std::string      SCENE_FILE_PATH                       = "scenes/HW_11";
+
+inline static constexpr char  JSON_VERSION[]                        = "version";
 
 inline static constexpr char  JSON_SETTINGS[]                       = "settings";
 inline static constexpr char  JSON_SETTINGS_BG[]                    = "background_color";
@@ -91,6 +92,7 @@ inline double deg_to_rads(double deg)
 inline vec3 parse_vector(const rapidjson::Value::ConstArray& arr)
 {
     ASSERT_OR_THROW(arr.Size() == 3);
+    
     return vec3
     {
         static_cast<double>(arr[0].GetDouble()),
