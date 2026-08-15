@@ -47,6 +47,8 @@ add_library(Core
     src/light.cpp
     src/material.cpp
     src/texture.cpp
+    src/thread_pool.cpp
+    src/aabb.cpp
 )
 
 
