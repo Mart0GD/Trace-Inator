@@ -3,6 +3,7 @@
 
 #include "utils/constants.hpp"
 #include "memory/thread_pool.hpp"
+#include "geometry/aabb.hpp"
 #include "scene.hpp"
 #include "texture.hpp"
 
@@ -38,6 +39,7 @@ private:
 private:
 
     thread_pool pool;
+    aabb        box;
 
     static constexpr double  SHADOW_BIAS        = 0.01;
     static constexpr double  REFRACTION_BIAS    = 0.01;

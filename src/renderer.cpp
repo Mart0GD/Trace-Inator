@@ -28,6 +28,14 @@ void renderer::render(std::ostream& os) {
         }
         
     }
+
+// -- PREPARE AABB --
+
+    for(const mesh& m: world->geometry) 
+    {
+        box.grow_to_include(m);
+    }
+
     
 //  -- RENDER --
 
@@ -92,7 +100,9 @@ void renderer::render(std::ostream& os) {
 color renderer::shade(const ray& r) const 
 {
     hit_record info;
-    bool hit = world->trace(r, 0.001, INF, info);
+    bool hit = false;
+    
+    if (intersects(r, box)) hit = world->trace(r, 0.001, INF, info);
 
     if(hit == false || r.depth >= MAX_DEPTH)
     {
