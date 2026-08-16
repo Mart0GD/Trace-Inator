@@ -2,10 +2,9 @@
 #define __AABB_HPP_INCLUDED__
 
 #include "utils/constants.hpp"
+#include "geometry/mesh.hpp"
+#include "geometry/mesh_triangle.hpp"
 
-// Forward declaration
-class scene;
-class mesh;
 
 // Class representing an Axis Aligned Bounding Box.
 struct aabb {
@@ -22,6 +21,7 @@ struct aabb {
     aabb(const point3D& p1, const point3D& p2) : p_min(min(p1,p2)), p_max(max(p1,p2)) {};
 
     void grow_to_include(const point3D& point);
+    void grow_to_include(const mesh_triangle& triangle);
     void grow_to_include(const mesh& m);
 
     bool is_empty() const; 

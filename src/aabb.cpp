@@ -3,8 +3,8 @@
 
 aabb::aabb()
 {
-    double max = std::numeric_limits<double>::max();
-    double min = std::numeric_limits<double>::min();
+    const fp max = 1e30;
+    const fp min = -1e30;
     
     p_min = point3D(max,max,max);
     p_max = point3D(min,min,min);
@@ -12,7 +12,7 @@ aabb::aabb()
 
 bool aabb::is_empty() const 
 {
-    return p_min.x <= p_max.x || p_min.y <= p_max.y || p_min.z <= p_max.z;
+    return p_min.x > p_max.x || p_min.y > p_max.y || p_min.z > p_max.z;
 }
 
 aabb _union(const aabb& box, const point3D& point)
@@ -42,46 +42,29 @@ bool inside(const point3D& p, const aabb& box)
 }
 
 bool intersects(const ray& r, const aabb& box)
-{
-    // Formula --> t = (point - r.origin) / r.dir
-    struct packet
-    {
-        double box_side;
-        double origin_side;
-        double direction_side;
-    };
+{   
+    // X ос
+    fp tx1 = (box.p_min.x - r.origin.x) * r.inv_dir.x;
+    fp tx2 = (box.p_max.x - r.origin.x) * r.inv_dir.x;
 
-    // Packets for all calculations
-    const packet sides[6]
-    {
-        {box.p_min.x, r.origin.x, r.direction.x},
-        {box.p_min.y, r.origin.y, r.direction.y},
-        {box.p_min.z, r.origin.z, r.direction.z},
+    fp tmin = std::min(tx1, tx2); 
+    fp tmax = std::max(tx1, tx2); 
 
-        {box.p_max.x, r.origin.x, r.direction.x},
-        {box.p_max.y, r.origin.y, r.direction.y},
-        {box.p_max.z, r.origin.z, r.direction.z},
-    };
+    // Y ос
+    fp ty1 = (box.p_min.y - r.origin.y) * r.inv_dir.y;
+    fp ty2 = (box.p_max.y - r.origin.y) * r.inv_dir.y;
 
-    bool intersection = false;
-    double min_t = std::numeric_limits<double>::max();
+    tmin = std::max(tmin, std::min(ty1, ty2));
+    tmax = std::min(tmax, std::max(ty1, ty2));
 
-    for(const packet& p: sides)
-    {
-        if(p.direction_side > -1e-9 && p.direction_side < 1e-9) continue;
+    // Z ос
+    fp tz1 = (box.p_min.z - r.origin.z) * r.inv_dir.z;
+    fp tz2 = (box.p_max.z - r.origin.z) * r.inv_dir.z;
 
-        const double t = (p.box_side - p.origin_side) / p.direction_side;
-        if(t < 0) continue; // behind
+    tmin = std::max(tmin, std::min(tz1, tz2));
+    tmax = std::min(tmax, std::max(tz1, tz2));
 
-        const point3D point = r.at(t);
-        if(inside(point, box) && t < min_t)
-        {
-            intersection = true;
-            min_t = t;
-        }
-    }
-    
-    return intersection;
+    return tmax >= tmin;
 }
 
 void aabb::grow_to_include(const point3D& point)
@@ -90,9 +73,17 @@ void aabb::grow_to_include(const point3D& point)
     this->p_max = max(this->p_max, point);
 }
 
+
+void aabb::grow_to_include(const mesh_triangle& triangle)
+{
+    grow_to_include(triangle[0]);
+    grow_to_include(triangle[1]);
+    grow_to_include(triangle[2]);
+}
+
 void aabb::grow_to_include(const mesh& m)
 {
-    const std::vector<point3D>& verticies = m.get_verticies();
+    const std::vector<point3D>& verticies = m.verticies;
 
     for(const point3D& p: verticies)
     {
