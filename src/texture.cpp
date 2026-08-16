@@ -133,7 +133,7 @@ color texture_handle::evaluate(const hit_record& info) const
         {
             edges_texture* txt = ptr.get<edges_texture>();
 
-            double width = txt->edge_width;
+            fp width = txt->edge_width;
             bool on_edge = info.baryU < width || info.baryV < width || 1 - (info.baryU + info.baryV) < width;
 
             return on_edge ? txt->edge_color : txt->inner_color;
@@ -155,18 +155,19 @@ color texture_handle::evaluate(const hit_record& info) const
             bitmap_texture* txt = ptr.get<bitmap_texture>();
             if(!txt->buffer) return {1,0,1}; // famous magenta 
 
-            double u = info.pUV.x - std::floor(info.pUV.x);
-            double v = 1 - (info.pUV.y - std::floor(info.pUV.y)); // invert v
+            fp u = info.pUV.x - std::floor(info.pUV.x);
+            fp v = 1 - (info.pUV.y - std::floor(info.pUV.y)); // invert v
 
             int32_t x = std::clamp(static_cast<int32_t>(u * txt->width), 0, txt->width - 1);
             int32_t y = std::clamp(static_cast<int32_t>(v * txt->height), 0, txt->height - 1);
 
             size_t index = (y * txt->width + x) * txt->channels; // can have an alpha channel
 
+            fp inverse = 1 / 255.f;
             return color {
-                txt->buffer[index]      / 255.0, 
-                txt->buffer[index + 1]  / 255.0, 
-                txt->buffer[index + 2]  / 255.0
+                txt->buffer[index]      * inverse, 
+                txt->buffer[index + 1]  * inverse, 
+                txt->buffer[index + 2]  * inverse
             };
         } break;
 
