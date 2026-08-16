@@ -11,18 +11,18 @@ public:
 
 // -- CORE FUNCTIONALITY --
 
-    camera(point3D position = {0,0,0}, double v_fov = 90);
+    camera(point3D position = {0,0,0}, fp v_fov = 90);
 
-    void init(double width, double height);
-    ray get_ray(const double u, const double v) const;
+    void init(fp width, fp height);
+    ray get_ray(const fp u, const fp v) const;
     
 //  -- CAMERA MOVEMENT --
 
     void translate(const vec3& dir);
     
-    void pan(double degrees);
-    void tilt(double degrees);
-    void roll(double degrees);
+    void pan(fp degrees);
+    void tilt(fp degrees);
+    void roll(fp degrees);
 
 // -- SERIALIZATION --
 
@@ -42,7 +42,7 @@ private:
     vec3    delta_u;            // direction for the next pixel vertically      (normalised)
     vec3    delta_v;            // direction for the next pixel horizontally    (normalised)
 
-    double  fov;                // vertical field of view
+    fp  fov;                    // vertical field of view
 };
 
 #endif

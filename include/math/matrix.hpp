@@ -2,48 +2,46 @@
 #define __MATRIX_HPP_INCLUDED__
 
 #include "vec3.hpp"
+#include "utils/defines.hpp"
 
 inline static constexpr int32_t MATRIX_SIZE = 3;
 
 class c_proxy {
 public:
-    c_proxy(const double* array) : cp_array(array) {};
+    c_proxy(const fp* array) : cp_array(array) {};
 
-    double operator [] (size_t index) const
+    fp operator [] (size_t index) const
     {
         if(index >= MATRIX_SIZE) throw std::invalid_argument("Invalid index!");
         return cp_array[index];
     }
 
 private:
-    const double* cp_array;
+    const fp* cp_array;
 };
 
 class proxy {
 public:
-    proxy(double* array) : p_array(array) {};
+    proxy(fp* array) : p_array(array) {};
 
-    double& operator [] (size_t index) 
+    fp& operator [] (size_t index) 
     {
         if(index >= MATRIX_SIZE) throw std::invalid_argument("Invalid index!");
         return p_array[index];
     }
 
 private:
-    double* p_array;
+    fp* p_array;
 };
 
 struct matrix {
-public:
 
-    double m_data[MATRIX_SIZE][MATRIX_SIZE] =
+    fp m_data[MATRIX_SIZE][MATRIX_SIZE] =
     {
         {1,0,0},
         {0,1,0},
         {0,0,1}
     };
-
-public:
 
     friend matrix   operator * (const matrix& left, const matrix& right);
     friend vec3     operator * (const vec3& left, const matrix& right);

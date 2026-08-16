@@ -4,6 +4,7 @@
 #include "utils/constants.hpp"
 #include "geometry/mesh.hpp"
 #include "memory/allocator.hpp"
+#include "ds/bvh.hpp"
 
 #include "light.hpp"
 #include "camera.hpp"
@@ -24,9 +25,9 @@ struct parse_ctx
 
 struct scene_settings {
 
-    double width         = 800;
-    double height        = 400;
-    double bucket_size   = 32;
+    fp width             = 800;
+    fp height            = 400;
+    fp bucket_size       = 32;
     color  background    = {0,0,0};
     
     void parse_from_json(const rapidjson::Value& info, const parse_ctx& version);
@@ -38,9 +39,11 @@ public:
     scene(const std::string& scene_file_name);
     void parse_from_json(const rapidjson::Value& info);
     
-    bool trace(const ray& r, double t_min, double t_max, hit_record& rec) const;
+    bool trace(const ray& r, fp t_min, fp t_max, hit_record& rec) const;
 
     texture_handle get_texture(const std::string& name) const;
+    
+    size_t triangles_cnt() const;
     
 // -- SCENE SPECIFIC --
     std::vector<mesh>           geometry;
@@ -49,9 +52,12 @@ public:
     std::vector<texture_handle> textures;
 
 // -- OTHERS --
-    scene_settings          settings;
-    allocator               arena;
-    camera                  cam;
+    scene_settings              settings;
+    allocator                   arena;
+    camera                      cam;
+
+// -- PRE PROCCESSING --
+    bvh                         acc_tree;
 };
 
 #endif

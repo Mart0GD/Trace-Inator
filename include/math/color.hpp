@@ -4,7 +4,7 @@
 #include "math/vec3.hpp"
 #include <iostream>
 
-typedef vec3 color;
+using color = vec3;
 
 inline void print_color(std::ostream& os, const color& pixel)
 {

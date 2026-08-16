@@ -8,7 +8,7 @@ matrix operator * (const matrix& left, const matrix& right)
     {
         for (int j = 0; j < MATRIX_SIZE; j++)
         {
-            double sum = 0;
+            fp sum = 0;
             for (int x = 0; x < MATRIX_SIZE; x++)
             {
                 sum += left[i][x] * right[x][j];

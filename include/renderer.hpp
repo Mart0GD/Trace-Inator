@@ -4,6 +4,7 @@
 #include "utils/constants.hpp"
 #include "memory/thread_pool.hpp"
 #include "geometry/aabb.hpp"
+
 #include "scene.hpp"
 #include "texture.hpp"
 
@@ -25,21 +26,18 @@ public:
 
 private:
 
-    void render_bucket(const bucket& b, const std::vector<color>& image_buffer);
-
     color shade(const ray& r) const;  
     
     color shade_diffusive(const ray& r, const hit_record& info) const; 
     color shade_reflective(const ray& r, const hit_record& info) const; 
     color shade_refractive(const ray& r, const hit_record& info) const; 
 
-    static double schlick(double n1, double n2, double cos_a); 
-    static double chaos(double cos_a);
+    static fp schlick(fp n1, fp n2, fp cos_a); 
+    static fp chaos(fp cos_a);
 
 private:
 
     thread_pool pool;
-    aabb        box;
 
     static constexpr double  SHADOW_BIAS        = 0.01;
     static constexpr double  REFRACTION_BIAS    = 0.01;
