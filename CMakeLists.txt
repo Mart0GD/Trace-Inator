@@ -49,6 +49,8 @@ add_library(Core
     src/texture.cpp
     src/thread_pool.cpp
     src/aabb.cpp
+    src/mesh_triangle.cpp
+    src/bvh.cpp
 )
 
 
