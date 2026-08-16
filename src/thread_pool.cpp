@@ -1,4 +1,4 @@
-#include "thread_pool.hpp"
+#include "memory/thread_pool.hpp"
 
 thread_pool::thread_pool(std::size_t threads)
     : finished(false)
