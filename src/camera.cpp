@@ -1,23 +1,23 @@
 #include "camera.hpp"
 #include "scene.hpp"
 
-camera::camera(point3D position, double v_fov)
+camera::camera(point3D position, fp v_fov)
     : position(position)
     , fov(v_fov)
 {
     init(INIT_WIDTH, INIT_HEIGHT);
 }
 
-void camera::init(double width, double height)
+void camera::init(fp width, fp height)
 {
     // FOV settings
-    double focal_length = 1;
-    double angle = deg_to_rads(fov);
-    double h = std::tan(angle / 2);
+    fp focal_length = 1;
+    fp angle = deg_to_rads(fov);
+    fp h = std::tan(angle / 2);
     
     // Viewport settings 
-    double v_height = 2 * h * focal_length;
-    double v_width  = v_height * width / height;
+    fp v_height = 2 * h * focal_length;
+    fp v_width  = v_height * width / height;
 
     vec3 viewport_u = vec3(v_width, 0, 0);
     vec3 viewport_v = vec3(0, -v_height, 0);
@@ -29,37 +29,37 @@ void camera::init(double width, double height)
     pixel_00 = top_left + 0.5 * (delta_u + delta_v);
 }
 
-void camera::pan(double degrees)
+void camera::pan(fp degrees)
 {   
-    double rad = deg_to_rads(degrees);
+    fp rad = deg_to_rads(degrees);
     matrix rotation_Y = 
     {
-        cos(rad), 0.f, -sin(rad),
+        std::cos(rad), 0.f, -std::sin(rad),
         0.f,       1.f,     0.f   ,
-        sin(rad), 0.f, cos(rad)
+        std::sin(rad), 0.f, std::cos(rad)
     };
     rotation_matrix = rotation_matrix * rotation_Y; // accumulates rotation ...
 }
 
-void camera::tilt(double degrees)
+void camera::tilt(fp degrees)
 {
-    double rad = deg_to_rads(degrees);
+    fp rad = deg_to_rads(degrees);
     matrix rotation_X = 
     {
         1.f,       0      ,    0     ,
-        0,      cos(rad) , sin(rad),
-        0,      -sin(rad), cos(rad)
+        0,      std::cos(rad) , std::sin(rad),
+        0,      -std::sin(rad), std::cos(rad)
     };
     rotation_matrix = rotation_matrix * rotation_X; // accumulates rotation ...
 }
 
-void camera::roll(double degrees)
+void camera::roll(fp degrees)
 {
-    double rad = deg_to_rads(degrees);
+    fp rad = deg_to_rads(degrees);
     matrix rotation_Z = 
     {
-        cos(rad) , sin(rad), 0.f,
-        -sin(rad), cos(rad), 0.f,
+        std::cos(rad) , std::sin(rad), 0.f,
+        -std::sin(rad), std::cos(rad), 0.f,
         0.f       , 0.f      , 1.f
     };
     rotation_matrix = rotation_matrix * rotation_Z; // accumulates rotation ...
@@ -112,7 +112,7 @@ void camera::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx)
     }
 }
 
-ray camera::get_ray(double u, double v) const
+ray camera::get_ray(fp u, fp v) const
 {
     point3D pixel       = pixel_00 + delta_u * u + delta_v * v;
 
@@ -122,6 +122,9 @@ ray camera::get_ray(double u, double v) const
     ray out;
     out.origin = position;
     out.direction = global_dir;
+    out.type = RT_CAMERA;
+    out.depth = 0;
+    out.inv_dir = 1 / out.direction;
 
     return out;        
 }

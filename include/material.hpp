@@ -34,7 +34,7 @@ struct material
     material_type  type      = MAT_CONSTANT;  // material type
     texture_handle albedo;
     bool smooth_shading      = false;         // shade with vertex normals
-    double ior               = 1;             // index of refraction
+    fp ior                   = 1;             // index of refraction
 
     void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
 };

@@ -11,32 +11,32 @@
 // Forward declaration
 struct parse_ctx;
 
-struct albedo_texture
+struct alignas(8) albedo_texture
 {
     color albedo;
 
     void parse_from_json(const rapidjson::Value& info);
 };
 
-struct edges_texture
+struct alignas(8) edges_texture
 {
     vec3    edge_color;
     vec3    inner_color;
-    double  edge_width;
+    fp  edge_width;
 
     void parse_from_json(const rapidjson::Value& info);
 };
 
-struct checker_texture
+struct alignas(8) checker_texture
 {
     vec3 color_A;
     vec3 color_B;
-    double square_size;
+    fp square_size;
 
     void parse_from_json(const rapidjson::Value& info);
 };
 
-struct bitmap_texture
+struct alignas(8) bitmap_texture
 {
     int width, height, channels;
     unsigned char* buffer = nullptr;
