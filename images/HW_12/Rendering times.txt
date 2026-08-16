@@ -1,0 +1,8 @@
+Rendering times:
+
+Before anything: 138.67 seconds.(Release)
+Bucket rendering: 18.0947 seconds. (Release)
+One AABB: 11.3224 seconds.
+BVH: 2.36002 seconds (alternating axis)
+
+
