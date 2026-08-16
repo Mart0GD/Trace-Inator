@@ -1,51 +1,6 @@
 #include "geometry/mesh.hpp"
 #include "scene.hpp"
 
-bool mesh::trace(const ray& r, double t_min, double t_max, hit_record& rec) const
-{
-    hit_record  tmp_rec;
-    bool        hit_anything = false;
-    double      closest_so_far = t_max;
-
-    for (size_t i = 0; i < tvi.size(); i+= 3)
-    {
-        const int32_t v0 = tvi[i];
-        const int32_t v1 = tvi[i + 1];
-        const int32_t v2 = tvi[i + 2];
-
-        const triangle_context ctx =
-        {
-            // verticies
-            verticies[v0],
-            verticies[v1],
-            verticies[v2],
-
-            // uv coordinates
-            uvs[v0],
-            uvs[v1],
-            uvs[v2],
-
-            // normals
-            v_normals[v0],
-            v_normals[v1],
-            v_normals[v2],
-        };
-
-        if(triangle_hit(
-            r, 
-            ctx,
-            t_min, closest_so_far, tmp_rec
-        ))
-        {
-            rec = tmp_rec;
-            hit_anything = true;
-            closest_so_far = tmp_rec.t;
-        }
-    }
-    
-    return hit_anything;
-}
-
 void mesh::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx)
 {
     ASSERT_OR_THROW(root.IsObject());
@@ -133,53 +88,4 @@ void mesh::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx)
             this->uvs = std::vector<point3D>(v_size / 3, {0,0,0});
         } break;
     }
-}
-
-bool mesh::triangle_hit(
-    const ray& r,
-    const triangle_context& ctx,
-    double t_min, double t_max,
-    hit_record& rec
-) const
-{   
-    const double eps = 1e-9;
-
-    vec3 edge1 = ctx.v1 - ctx.v0;
-    vec3 edge2 = ctx.v2 - ctx.v0;
-    
-    vec3 ray_corss_e2 = cross(r.direction, edge2);
-    double det = dot(edge1, ray_corss_e2);
-
-    if (std::abs(det) < eps) return false;
-
-    double inv_det = 1.0 / det;
-    vec3 s = r.origin - ctx.v0;
-    double u = inv_det * dot(s,ray_corss_e2);
-
-    if(u < -eps || u - 1 > eps) return false;       // must be in [0,1]
-
-    vec3 s_cross_e1 = cross(s,edge1);
-    double v = inv_det * dot(r.direction, s_cross_e1);
-
-    if(v < -eps || u + v - 1 > eps) return false;   // u + v <= 1
-
-    double t = inv_det * dot(edge2,s_cross_e1);
-
-    if (t <= t_min || t >= t_max) return false;     // outside bounds
-
-    rec.t = t;
-    rec.point = r.at(t);
-    rec.mat = mat;
-    rec.baryU = u;
-    rec.baryV = v;
-
-    vec3 geometric_N = unit_vector(cross(edge1, edge2));
-    vec3 smooth_N = unit_vector((1.0 - u - v) * ctx.n0 + u * ctx.n1 + v * ctx.n2);
-    point3D interpolatedUV = u * ctx.uv1 + v * ctx.uv2 + (1 - u - v) * ctx.uv0;
-
-    rec.geometric_normal = geometric_N;
-    rec.hit_normal = smooth_N;
-    rec.pUV = interpolatedUV;
-
-    return true;
 }
