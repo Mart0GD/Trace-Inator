@@ -75,24 +75,35 @@ public:
     }
 
     template<typename T>
-    T* alloc()
+    T* alloc(const size_t cnt = 1, bool run_constructor = true)
     {
-        void* mem = alloc(sizeof(T));
-        T* obj = new (mem) T(); // placement new
-        
-        // Has a destructor
-        if constexpr(!std::is_trivially_destructible_v<T>)
-        {
-            destructors.push_back({
-                obj,
-                [] (void* ptr)
-                {
-                    static_cast<T*>(ptr)->~T(); // call the destructor for the block of memory
-                }
-            });
-        }
+        T* mem = static_cast<T*>(alloc(sizeof(T) * cnt));
 
-        return obj;
+        if(run_constructor)
+        {
+            for(size_t i = 0; i < cnt; ++i)
+            {
+                new (&mem[i]) T(); // placement new
+            }
+
+            // Has a destructor
+            if constexpr(!std::is_trivially_destructible_v<T>)
+            {
+                for(size_t i = 0; i < cnt; ++i)
+                {
+                    destructors.push_back({
+                        &mem[i],
+                        [] (void* ptr)
+                        {
+                            static_cast<T*>(ptr)->~T(); // call the destructor for the block of memory
+                        }
+                    });
+                }
+                
+            }
+        }
+        
+        return mem;
     }
 
 private:
