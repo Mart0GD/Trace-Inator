@@ -16,7 +16,9 @@ scene::scene(const std::string& scene_file_name)
     ASSERT_OR_THROW(!doc.HasParseError());
     
     parse_from_json(doc);          
+
     cam.init(settings.width, settings.height); 
+    acc_tree.build(*this);
 }
 
 void scene::parse_from_json(const rapidjson::Value& root)
@@ -117,25 +119,25 @@ void scene::parse_from_json(const rapidjson::Value& root)
     }
 }
 
-bool scene::trace(const ray& r, double t_min, double t_max, hit_record& rec) const 
+bool scene::trace(const ray& r, fp t_min, fp t_max, hit_record& rec) const 
 {
     hit_record tmp_rec;
     bool hit_anything = false;
-    double closest_so_far = t_max;
+    fp closest_so_far = t_max;
 
     for(const mesh& m : geometry)
     {
-        if(m.trace(r, t_min, closest_so_far, tmp_rec))
-        {
-            // temporary logic --> refractive objects don't stop light
-            // TODO: add refractive influence on shadowing
-            if(r.type == RT_SHADOW && m.get_material()->type == MAT_REFRACTIVE) continue;
+        // if(m.trace(r, t_min, closest_so_far, tmp_rec))
+        // {
+        //     // temporary logic --> refractive objects don't stop light
+        //     // TODO: add refractive influence on shadowing
+        //     if(r.type == RT_SHADOW && m.mat->type == MAT_REFRACTIVE) continue;
 
 
-            hit_anything = true;
-            closest_so_far = tmp_rec.t;
-            rec = tmp_rec;
-        }
+        //     hit_anything = true;
+        //     closest_so_far = tmp_rec.t;
+        //     rec = tmp_rec;
+        // }
     }
 
     return hit_anything;
@@ -149,6 +151,17 @@ texture_handle scene::get_texture(const std::string& name) const
     }
     ASSERT_OR_THROW(false);
 }
+
+size_t scene::triangles_cnt() const
+{
+    size_t triangles = 0;
+    for(const mesh& m: geometry)
+    {
+        triangles += m.triangles_cnt();
+    }
+
+    return triangles;
+}   
 
 void scene_settings::parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx) 
 {
