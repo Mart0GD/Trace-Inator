@@ -16,7 +16,7 @@ struct vec3 {
     fp length()         const { return std::sqrt(x * x + y * y + z * z); }
     fp length_pow2()    const { return x * x + y * y + z * z; }
 
-    fp    operator [] (const uint32_t index)
+    fp    operator [] (const uint32_t index) const
     {
         ASSERT_OR_THROW(index < 3);
         if(index == 0) return x;
@@ -85,6 +85,10 @@ inline vec3 operator / (const vec3& vec, double scalar)
     return vec * (1 / scalar);
 }
 
+inline vec3 operator / (double scalar, const vec3& vec)
+{
+    return vec3(1 / vec.x, 1 / vec.y, 1 / vec.z);
+}
 
 inline fp dot(const vec3& vec1, const vec3& vec2) {
     return vec1.x * vec2.x
