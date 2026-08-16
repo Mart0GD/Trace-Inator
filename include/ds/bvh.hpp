@@ -1,0 +1,59 @@
+#ifndef __BVH_HPP_INCLUDED__
+#define __BVH_HPP_INCLUDED__
+
+#include "utils/constants.hpp"
+#include "memory/allocator.hpp"
+
+#include "geometry/aabb.hpp"
+#include "geometry/mesh_triangle.hpp"
+#include "geometry/hitable.hpp"
+
+#include <stack>
+
+// Forward Declaration
+class scene;
+
+class bvh {
+
+    /*
+        **Index** 
+        Leaf --> the first triangle
+        Non leaf --> the left child
+    */
+    struct node
+    {
+        aabb box;               // 24 bytes
+        int32_t index;          // 4 bytes
+        int32_t triangles_cnt;  // 4 bytes
+
+        node() : box{}, index(-1), triangles_cnt(0) {};
+
+        inline bool leaf() const { return triangles_cnt > 0; }
+    }; // 32 bytes (half cache line)
+
+public:
+
+    bvh();
+
+    void build(const scene& world);
+    bool trace(const ray& r, fp t_min, fp t_max, hit_record& info) const;
+    
+    inline bool empty() const { return nodes_cnt == 0; }
+
+private:
+
+    void split(const int32_t node_index, int32_t axis);
+    void update_bounds(const int32_t node_index);
+
+    allocator arena;
+    node* node_pool;
+    mesh_triangle* triangles;
+    uint32_t* t_table; 
+
+    int32_t root_index;
+    int32_t nodes_cnt;
+
+    static constexpr int32_t MAX_TRIANGLES_PER_NODE = 2;
+};
+
+#endif
