@@ -6,7 +6,10 @@
 #include "math/vec3.hpp"
 #include "math/ray.hpp"
 #include "math/color.hpp"
+#include "math/point3D.hpp"
 #include "math/matrix.hpp"
+
+#include "utils/defines.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
@@ -17,8 +20,8 @@
 
 // -- CONSTANTS --
 
-static constexpr double       PI = 3.1415926535897932385;
-static constexpr double       INF = std::numeric_limits<double>::infinity();
+static constexpr fp           PI = 3.1415926535897932385;
+static constexpr fp           INF = std::numeric_limits<double>::infinity();
 
 static const std::string      SCENE_FILE_PATH                       = "scenes/HW_11";
 
@@ -67,25 +70,10 @@ inline static constexpr char  JSON_TEXTURES_CHECKER_SQUARE_SIZE[]   = "square_si
 
 inline static constexpr char  JSON_TEXTURES_BITMAP_FILE_PATH[]      = "file_path";
 
-// -- MACROS --
-
-#define ASSERT_OR_THROW(expr)               \
-if(expr) ;                                  \
-else {                                      \
-    assert(false);                          \
-    throw std::invalid_argument("error!");  \
-}               
-
-// Note: uncomment for debug features
-// #define _DEBUG
-
-#ifndef L1_CACHE_LINE_SIZE
-#define L1_CACHE_LINE_SIZE 64
-#endif
 
 // -- FUNCTIONS --
 
-inline double deg_to_rads(double deg)
+inline fp deg_to_rads(fp deg)
 {
     return deg * (PI / 180.0);
 }
@@ -96,9 +84,9 @@ inline vec3 parse_vector(const rapidjson::Value::ConstArray& arr)
     
     return vec3
     {
-        static_cast<double>(arr[0].GetDouble()),
-        static_cast<double>(arr[1].GetDouble()),
-        static_cast<double>(arr[2].GetDouble())
+        static_cast<fp>(arr[0].GetDouble()),
+        static_cast<fp>(arr[1].GetDouble()),
+        static_cast<fp>(arr[2].GetDouble())
     };
 }
 
