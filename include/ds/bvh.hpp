@@ -44,7 +44,10 @@ private:
 
     void split(const int32_t node_index);
     void update_bounds(const int32_t node_index);
+
     fp   evaluate_SAH(const node& n, int32_t axis, fp pos) const;
+    fp   find_best_split_plane(const node& n, int32_t& axis, fp& pos) const;
+    fp   get_cost(const node& n) const;
 
     allocator arena;
     node* node_pool;

@@ -55,38 +55,16 @@ void bvh::split(const int32_t node_index)
     node& n = node_pool[node_index];
 
     // Decide the axis
-    vec3 diagonal = n.box.p_max - n.box.p_min;
-
-    fp parent_cost = n.box.area() * n.triangles_cnt;
-
-    int32_t best_axis = -1;
-    fp best_pos = 0;
-    fp best_cost = 1e30;
-
-    for (int32_t i = 0; i < n.triangles_cnt; ++i)
-    {
-        const mesh_triangle& t = triangles[t_table[n.index + i]];
-
-        for (int32_t axis = 0; axis < 3; ++axis)
-        {
-            fp pos = t.get_center()[axis];
-            fp cost = evaluate_SAH(n, axis, pos);
-
-            if(cost < best_cost)
-            {
-                best_axis = axis;
-                best_cost = cost;
-                best_pos = pos;
-            }
-        }
-        
-    }
-
-    // bottom condition
-    if(best_cost >= parent_cost) return;
+    int32_t split_axis = -1;
+    fp split_pos = 0;
+    fp split_cost = find_best_split_plane(n, split_axis, split_pos);
     
-    int32_t axis = best_axis;
-    fp split_positon = best_pos;
+    // bottom condition
+    fp parent_cost = get_cost(n);
+    if(split_cost >= parent_cost) return;
+    
+    int32_t axis = split_axis;
+    fp split_positon = split_pos;
 
     // Partion --> Like Quick sort
     int32_t i = n.index;
@@ -233,3 +211,40 @@ fp bvh::evaluate_SAH(const node& n, int32_t axis, fp pos) const
     fp cost = l_cnt * left.area() + r_cnt * right.area();
     return cost > 0 ? cost : 1e30;
 }
+
+
+fp bvh::find_best_split_plane(const node& n, int32_t& split_axis, fp& split_pos) const
+{
+    fp best_cost = 1e30;
+
+    for(int32_t axis = 0; axis < 3; ++axis)
+    {
+        fp min = 1e30f; fp max = -1e30f;
+        for(int32_t i = 0; i < n.triangles_cnt; ++i)
+        {
+            const mesh_triangle& t = triangles[t_table[n.index + i]];
+            min = std::min(min, t.get_center()[axis]);
+            max = std::max(max, t.get_center()[axis]);
+        }
+
+        if(min == max) continue;
+        fp scale = (max - min) / 16;
+        
+        for (int32_t i = 0; i < 16; ++i)
+        {
+            fp candidate_pos = min * i * scale;
+            fp cost = evaluate_SAH(n, axis, candidate_pos);
+            
+            if(cost < best_cost)
+            {
+                best_cost = cost;
+                split_axis = axis;
+                split_pos = candidate_pos;
+            }
+        }
+    }
+
+    return best_cost;
+}
+
+fp bvh::get_cost(const node& n) const { return n.box.area() * n.triangles_cnt; }
