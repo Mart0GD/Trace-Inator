@@ -40,31 +40,30 @@ bool inside(const point3D& p, const aabb& box)
     p.y >= box.p_min.y && p.y <= box.p_max.y &&
     p.z >= box.p_min.z && p.z <= box.p_max.z;
 }
-
-bool intersects(const ray& r, const aabb& box)
+fp intersects(const ray& r, const aabb& box, fp ray_t)
 {   
-    // X ос
     fp tx1 = (box.p_min.x - r.origin.x) * r.inv_dir.x;
     fp tx2 = (box.p_max.x - r.origin.x) * r.inv_dir.x;
 
-    fp tmin = std::min(tx1, tx2); 
-    fp tmax = std::max(tx1, tx2); 
+    fp tmin = std::min(tx1, tx2);
+    fp tmax = std::max(tx1, tx2);
 
-    // Y ос
+    // Y 
     fp ty1 = (box.p_min.y - r.origin.y) * r.inv_dir.y;
     fp ty2 = (box.p_max.y - r.origin.y) * r.inv_dir.y;
 
     tmin = std::max(tmin, std::min(ty1, ty2));
     tmax = std::min(tmax, std::max(ty1, ty2));
 
-    // Z ос
+    // Z 
     fp tz1 = (box.p_min.z - r.origin.z) * r.inv_dir.z;
     fp tz2 = (box.p_max.z - r.origin.z) * r.inv_dir.z;
 
     tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));
 
-    return tmax >= tmin;
+    bool valid = tmax >= tmin && tmin < ray_t && tmax > 0.0f;
+    return valid * tmin + !valid * 1e30f;
 }
 
 void aabb::grow_to_include(const point3D& point)
@@ -89,4 +88,10 @@ void aabb::grow_to_include(const mesh& m)
     {
         grow_to_include(p);
     }
+}
+
+fp aabb::area() const
+{
+    vec3 diagonal = p_max - p_min;
+    return diagonal.x * diagonal.y + diagonal.y * diagonal.z + diagonal.z * diagonal.x;
 }
