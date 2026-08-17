@@ -42,8 +42,9 @@ public:
 
 private:
 
-    void split(const int32_t node_index, int32_t axis);
+    void split(const int32_t node_index);
     void update_bounds(const int32_t node_index);
+    fp   evaluate_SAH(const node& n, int32_t axis, fp pos) const;
 
     allocator arena;
     node* node_pool;

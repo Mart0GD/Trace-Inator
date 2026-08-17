@@ -47,24 +47,46 @@ void bvh::build(const scene& world)
     update_bounds(root_index);
 
     // Create tree recursivly
-    split(root_index, -1);
+    split(root_index);
 }
 
-void bvh::split(const int32_t node_index, int32_t axis)
+void bvh::split(const int32_t node_index)
 {
     node& n = node_pool[node_index];
-
-    if(n.triangles_cnt <= MAX_TRIANGLES_PER_NODE) return;
 
     // Decide the axis
     vec3 diagonal = n.box.p_max - n.box.p_min;
 
-    axis = (axis + 1) % 3;
-    // int32_t axis = 0; // x
-    // if(diagonal.y > diagonal.x) axis = 1;
-    // if(diagonal.z > diagonal[axis]) axis = 2;
+    fp parent_cost = n.box.area() * n.triangles_cnt;
 
-    fp split_positon = n.box.p_min[axis] + diagonal[axis] * 0.5f;
+    int32_t best_axis = -1;
+    fp best_pos = 0;
+    fp best_cost = 1e30;
+
+    for (int32_t i = 0; i < n.triangles_cnt; ++i)
+    {
+        const mesh_triangle& t = triangles[t_table[n.index + i]];
+
+        for (int32_t axis = 0; axis < 3; ++axis)
+        {
+            fp pos = t.get_center()[axis];
+            fp cost = evaluate_SAH(n, axis, pos);
+
+            if(cost < best_cost)
+            {
+                best_axis = axis;
+                best_cost = cost;
+                best_pos = pos;
+            }
+        }
+        
+    }
+
+    // bottom condition
+    if(best_cost >= parent_cost) return;
+    
+    int32_t axis = best_axis;
+    fp split_positon = best_pos;
 
     // Partion --> Like Quick sort
     int32_t i = n.index;
@@ -109,8 +131,8 @@ void bvh::split(const int32_t node_index, int32_t axis)
     update_bounds(right_child_index);
 
     // Continue recursion
-    split(left_child_index, axis);
-    split(right_child_index, axis);
+    split(left_child_index);
+    split(right_child_index);
 }
 
 
@@ -123,12 +145,14 @@ bool bvh::trace(const ray& r, fp t_min, fp t_max, hit_record& info) const
     
     bool intersection = false;
 
+    /*
+        Do two checks a non-leaf cycle.
+        it can invalidate the the next one by updating the t_max value saving time ...
+    */
     while(top >= 0)
     {
         const int32_t idx = stack[top--]; 
         const node& n = node_pool[idx];
-
-        if(!intersects(r, n.box)) continue;
 
         if(n.leaf())
         {
@@ -149,8 +173,22 @@ bool bvh::trace(const ray& r, fp t_min, fp t_max, hit_record& info) const
         }
         else
         {
-            stack[++top] = n.index;
-            stack[++top] = n.index + 1;
+            int32_t l_index = n.index;
+            int32_t r_index = n.index + 1;
+
+            // check for intersection
+            fp l_dist = intersects(r, node_pool[l_index].box, t_max);
+            fp r_dist = intersects(r, node_pool[r_index].box, t_max);
+
+            if(l_dist > r_dist)
+            {
+                std::swap(l_dist, r_dist);
+                std::swap(l_index, r_index);
+            }
+
+            // Add the closest one first
+            if(l_dist < 1e30f) stack[++top] = l_index;
+            if(r_dist < 1e30f) stack[++top] = r_index;
         }
     }
 
@@ -169,4 +207,29 @@ void bvh::update_bounds(const int32_t node_index)
 
         n.box.grow_to_include(t);
     }
+}
+
+fp bvh::evaluate_SAH(const node& n, int32_t axis, fp pos) const
+{
+    aabb left, right;
+    int32_t l_cnt = 0;
+    int32_t r_cnt = 0;
+
+    for (size_t i = 0; i < n.triangles_cnt; i++)
+    {
+        const mesh_triangle& t = triangles[t_table[n.index + i]];
+        if(t.get_center()[axis] < pos)
+        {
+            left.grow_to_include(t);
+            ++l_cnt;
+        }
+        else
+        {
+            right.grow_to_include(t);
+            ++r_cnt;
+        }
+    }
+
+    fp cost = l_cnt * left.area() + r_cnt * right.area();
+    return cost > 0 ? cost : 1e30;
 }
