@@ -90,6 +90,13 @@ void aabb::grow_to_include(const mesh& m)
     }
 }
 
+
+void aabb::grow_to_include(const aabb& box)
+{
+    this->p_min = min(this->p_min, box.p_min);
+    this->p_max = max(this->p_max, box.p_max);
+}
+
 fp aabb::area() const
 {
     vec3 diagonal = p_max - p_min;

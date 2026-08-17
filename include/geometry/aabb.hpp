@@ -22,6 +22,7 @@ struct aabb {
 
     void grow_to_include(const point3D& point);
     void grow_to_include(const mesh_triangle& triangle);
+    void grow_to_include(const aabb& box);
     void grow_to_include(const mesh& m);
 
     bool is_empty() const; 
