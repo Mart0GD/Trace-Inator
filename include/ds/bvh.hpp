@@ -16,9 +16,9 @@ class scene;
 class bvh {
 
     /*
-        **Index** 
-        Leaf --> the first triangle
-        Non leaf --> the left child
+    *   **Index** 
+    *   Leaf --> the first triangle
+    *   Non leaf --> the left child
     */
     struct node
     {
@@ -30,6 +30,15 @@ class bvh {
 
         inline bool leaf() const { return triangles_cnt > 0; }
     }; // 32 bytes (half cache line)
+
+    /*
+    *   Structure for heuristical spliting of bvh planes
+    */
+    struct bin
+    {
+        aabb box{};
+        int32_t triangles_cnt = 0;
+    };
 
 public:
 
@@ -58,6 +67,7 @@ private:
     int32_t nodes_cnt;
 
     static constexpr int32_t MAX_TRIANGLES_PER_NODE = 2;
+    static constexpr int32_t BINS                   = 4;
 };
 
 #endif

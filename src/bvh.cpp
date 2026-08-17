@@ -124,8 +124,8 @@ bool bvh::trace(const ray& r, fp t_min, fp t_max, hit_record& info) const
     bool intersection = false;
 
     /*
-        Do two checks a non-leaf cycle.
-        it can invalidate the the next one by updating the t_max value saving time ...
+    *   Do two checks a non-leaf cycle.
+    *   it can invalidate the the next one by updating the t_max value saving time ...
     */
     while(top >= 0)
     {
@@ -165,8 +165,8 @@ bool bvh::trace(const ray& r, fp t_min, fp t_max, hit_record& info) const
             }
 
             // Add the closest one first
-            if(l_dist < 1e30f) stack[++top] = l_index;
             if(r_dist < 1e30f) stack[++top] = r_index;
+            if(l_dist < 1e30f) stack[++top] = l_index;
         }
     }
 
@@ -217,8 +217,13 @@ fp bvh::find_best_split_plane(const node& n, int32_t& split_axis, fp& split_pos)
 {
     fp best_cost = 1e30;
 
+    // Preallocated memory 
+    fp      left_area[BINS - 1], right_area[BINS - 1];
+    int32_t left_cnt[BINS - 1] , right_cnt[BINS - 1];
+
     for(int32_t axis = 0; axis < 3; ++axis)
     {
+        // Crop only where the geometry is
         fp min = 1e30f; fp max = -1e30f;
         for(int32_t i = 0; i < n.triangles_cnt; ++i)
         {
@@ -228,20 +233,54 @@ fp bvh::find_best_split_plane(const node& n, int32_t& split_axis, fp& split_pos)
         }
 
         if(min == max) continue;
-        fp scale = (max - min) / 16;
-        
-        for (int32_t i = 0; i < 16; ++i)
+
+        // Fill bins
+        bin bin[BINS]{};
+        fp scale = BINS / (max - min);
+        for(int32_t i = 0; i < n.triangles_cnt; ++i)
         {
-            fp candidate_pos = min * i * scale;
-            fp cost = evaluate_SAH(n, axis, candidate_pos);
-            
+            const mesh_triangle& t = triangles[t_table[n.index + i]];
+
+            // calculate index (mind fp error)
+            int32_t index = std::min(BINS - 1, static_cast<int32_t>((t.get_center()[axis] - min) * scale));
+
+            // update bin
+            bin[index].triangles_cnt++;
+            bin[index].box.grow_to_include(t);
+        }
+
+        // Calculate prefix sums
+        aabb left_box, right_box;
+        int32_t left_sum = 0, right_sum = 0;
+
+        for (int32_t i = 0; i < BINS - 1; ++i)
+        {
+            // Left cuts
+            left_sum += bin[i].triangles_cnt;
+            left_cnt[i] = left_sum;
+            left_box.grow_to_include(bin[i].box);
+            left_area[i] = left_box.area();
+
+            // Right cuts
+            right_sum += bin[BINS - 1 - i].triangles_cnt;
+            right_cnt[BINS - 2 - i] = right_sum;
+            right_box.grow_to_include(bin[BINS - 1 - i].box);
+            right_area[BINS - 2 - i] = right_box.area();
+        }
+    
+        // Calculate final costs
+        scale = (max - min) / BINS;
+        for (int32_t i = 0; i < BINS - 1; ++i)
+        {
+            fp cost = left_cnt[i] * left_area[i] + right_cnt[i] * right_area[i];
             if(cost < best_cost)
             {
                 best_cost = cost;
                 split_axis = axis;
-                split_pos = candidate_pos;
+                split_pos = min + scale * (i + 1);
             }
         }
+        
     }
 
     return best_cost;
