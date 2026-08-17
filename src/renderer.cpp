@@ -1,7 +1,7 @@
 #include "renderer.hpp"
 #include "geometry/mesh_triangle.hpp"
 
-void renderer::render(std::ostream& os) {
+void renderer::render(std::ostream& os, int32_t debug_depth) {
     const camera& camera = world->cam;
     const scene_settings& settings  = world->settings;
 
@@ -53,8 +53,14 @@ void renderer::render(std::ostream& os) {
                     for (int x = b.min_x; x < b.max_x; ++x)
                     {
                         ray r = camera.get_ray(x,y);
+                        color c;
 
-                        color c = shade(r);
+                        #ifndef _DEBUG 
+                            c = shade(r);
+                        #else          
+                            c = shade_debug(r, debug_depth);
+                        #endif
+
                         image_buffer[y * width + x] = std::move(c);
                     }
                 }
@@ -107,8 +113,6 @@ color renderer::shade(const ray& r) const
         return (1.0-a)*color(1.0, 1.0, 1.0) + a*world->settings.background;
     }
 
-#ifndef _DEBUG
-
     color final_color;
     const material* mat = info.mat;
 
@@ -138,12 +142,6 @@ color renderer::shade(const ray& r) const
     }
 
     return final_color;
-
-#else
-
-    vec3 N = info.geometric_normal;
-    return 0.5*color(N.x +1 , N.y + 1, N.z + 1);
-#endif
 }
 
 color renderer::shade_diffusive(const ray& r, const hit_record& info) const
@@ -269,4 +267,19 @@ fp renderer::schlick(fp n1, fp n2, fp cos_a)
 {
     fp Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
     return Ro + (1 - Ro) * pow(1 - cos_a, 5);
+}
+
+color renderer::shade_debug(const ray& r, int debug_depth) const {
+    hit_record info;
+    int32_t hit = world->acc_tree.trace_debug(r, 0.001, INF, info, debug_depth);;
+
+    if (!hit) {
+        vec3 unit_direction = unit_vector(r.direction);
+        fp a = 0.5 * (unit_direction.y + 1.0);
+        return (1.0 - a) * color(1.0, 1.0, 1.0) + a * world->settings.background;
+    }
+
+    
+    vec3 N = info.geometric_normal;
+    return 0.5 * color(N.x + 1.0, N.y + 1.0, N.z + 1.0);
 }

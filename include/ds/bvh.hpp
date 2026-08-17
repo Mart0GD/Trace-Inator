@@ -46,6 +46,7 @@ public:
 
     void build(const scene& world);
     bool trace(const ray& r, fp t_min, fp t_max, hit_record& info) const;
+    bool trace_debug(const ray& r, fp t_min, fp t_max, hit_record& info, int target_depth) const;
     
     inline bool empty() const { return nodes_cnt == 0; }
 
@@ -53,10 +54,13 @@ private:
 
     void split(const int32_t node_index);
     void update_bounds(const int32_t node_index);
-
+    
     fp   evaluate_SAH(const node& n, int32_t axis, fp pos) const;
     fp   find_best_split_plane(const node& n, int32_t& axis, fp& pos) const;
     fp   get_cost(const node& n) const;
+    
+    // debug
+    void get_nodes_at_depth(int, int, int, std::vector<const aabb*>&) const;
 
     allocator arena;
     node* node_pool;

@@ -20,7 +20,7 @@ struct bucket
 
 class renderer {
 public:
-    void render(std::ostream& os = std::cout);
+    void render(std::ostream& os = std::cout, int32_t debug_depth = -1);
 
     scene* world;
 
@@ -34,6 +34,8 @@ private:
 
     static fp schlick(fp n1, fp n2, fp cos_a); 
     static fp chaos(fp cos_a);
+
+    color shade_debug(const ray& r, int debug_depth) const;
 
 private:
 

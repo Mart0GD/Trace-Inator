@@ -287,3 +287,48 @@ fp bvh::find_best_split_plane(const node& n, int32_t& split_axis, fp& split_pos)
 }
 
 fp bvh::get_cost(const node& n) const { return n.box.area() * n.triangles_cnt; }
+
+void bvh::get_nodes_at_depth(int node_idx, int curr_depth, int t_depth, std::vector<const aabb*>& boxes) const 
+{
+    if (node_idx < 0 || node_idx >= nodes_cnt) return;
+    
+    const node& n = node_pool[node_idx];
+
+    if (curr_depth == t_depth || n.leaf()) {
+        boxes.push_back(&n.box);
+        return;
+    }
+
+    get_nodes_at_depth(n.index, curr_depth + 1, t_depth, boxes);     // left child
+    get_nodes_at_depth(n.index + 1, curr_depth + 1, t_depth, boxes); // right child
+}
+
+bool bvh::trace_debug(const ray& r, fp t_min, fp t_max, hit_record& info, int target_depth) const 
+{
+    std::vector<const aabb*> boxes;
+    boxes.reserve(pow(2,target_depth) - 1);
+    get_nodes_at_depth(root_index, 0, target_depth, boxes);
+
+    bool hit_box = false;
+    for (int32_t i = 0; i < boxes.size(); ++i) {
+        const aabb& box = *boxes[i];
+        fp t = intersects(r, box, t_max);
+        if (t != 1e30f) {
+            t_max = t;
+            hit_box = true;
+
+            fp red   = std::fmod((i + 1) * 0.6180339887f, 1.0f);
+            fp green = std::fmod((i + 1) * 0.3223122342f, 1.0f);
+            fp blue  = std::fmod((i + 1) * 0.7412321839f, 1.0f);
+
+            info.geometric_normal = vec3
+            {
+                red,
+                green,
+                blue
+            };
+        }   
+    }
+
+    return hit_box;
+}
