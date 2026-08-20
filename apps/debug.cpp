@@ -9,7 +9,7 @@
 
 int main()
 {   
-    scene world("../scenes/HW_13/scene1.crtscene");
+    scene world("scenes/Project/scene0.crtscene");
 
     renderer r;
     r.world = &world;
@@ -26,10 +26,11 @@ int main()
     while (true) {
         std::cout << "\nRendering BVH at depth: " << current_depth << "...\n";
 
-        std::string filename = "../debug.ppm";
+        std::string filename = "debug.ppm";
         std::ofstream out(filename);
 
-        r.render(out, current_depth);
+        r.render(current_depth);
+        r.save("debug" + std::to_string(current_depth) + ".ppm");
 
         out.close();
         std::cout << "Enter command (+ / - / q): ";
