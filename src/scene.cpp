@@ -1,7 +1,7 @@
 #include "scene.hpp"
 #include <fstream>
 #include <iostream>
-
+#include <chrono>
 #include <rapidjson/istreamwrapper.h>
 
 scene::scene(const std::string& scene_file_name)  
@@ -18,7 +18,17 @@ scene::scene(const std::string& scene_file_name)
     parse_from_json(doc);          
 
     cam.init(settings.width, settings.height); 
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
     acc_tree.build(*this);
+
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    
+
+    std::chrono::microseconds duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+    const double seconds = duration.count() / 1'000'000.0;
+    std::cerr << "time for creating bvh: " << seconds << " seconds." << std::endl;
 }
 
 void scene::parse_from_json(const rapidjson::Value& root)

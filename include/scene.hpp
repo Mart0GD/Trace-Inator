@@ -25,10 +25,11 @@ struct parse_ctx
 
 struct scene_settings {
 
-    fp width             = 800;
-    fp height            = 400;
-    fp bucket_size       = 32;
-    color  background    = {0,0,0};
+    fp width                = 800;
+    fp height               = 400;
+    fp bucket_size          = 32;
+    int32_t rpp             = 1;
+    color background        = {0,0,0};
     
     void parse_from_json(const rapidjson::Value& info, const parse_ctx& version);
 };
