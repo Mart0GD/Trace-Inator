@@ -7,3 +7,6 @@ Tracer-Inator is a C++17 CPU-based Whitted ray tracer developed for Chaos Camp 2
   - Lighting Model: Utilizes point lights to calculate direct illumination, specularity, and sharp shadows.
 
   - Sampling & Anti-Aliasing: Incorporates Monte Carlo–inspired iterative sampling techniques for smooth anti-aliasing (AA) and reduced image noise.
+
+
+![Image](images/final/image.jpeg)
