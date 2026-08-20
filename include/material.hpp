@@ -29,14 +29,16 @@ inline static const std::unordered_map<std::string, material_type> m_types = {
     {"constant", MAT_CONSTANT}
 };
 
+// By default diffusive
 struct material
 {
-    material_type  type      = MAT_CONSTANT;  // material type
-    texture_handle albedo;
-    bool smooth_shading      = false;         // shade with vertex normals
-    fp ior                   = 1;             // index of refraction
+    material_type  type      = MAT_DIFFUSIVE;   // material type
+    texture_handle texture;                     // texture (keeps the color)
+    bool smooth_shading      = false;           // shading with vertex normals
+    fp ior                   = 1;               // index of refraction
 
     void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
 };
+
 
 #endif
