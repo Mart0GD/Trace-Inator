@@ -50,12 +50,13 @@
 		}
 	],
 	
-	"materials": [{
-		"type": "diffuse",
+	"materials": [
+		{
+			"type": "diffuse",
 			"albedo": [
 				1, 0, 0
 			],
-			"smooth_shading": false
+			"smooth_shading": true
 		}			
 	],
 	

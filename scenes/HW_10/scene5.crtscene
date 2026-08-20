@@ -1,4 +1,5 @@
 {
+	"version": 1,
 	"settings": {
 		"background_color": [
 			0, 0.5, 0
@@ -13,18 +14,18 @@
 		"matrix": [
 			1, 0, 0,
 			0, 1, 0,
-			0, 0, 1
+			0, 0, -1
 		],
 		
 		"position": [
-			0, 0, 0
+			0, 0, -4 
 		],
 		"fov": 90
 	},
 	
 	"lights": [
 		{
-			"intensity": 100,
+			"intensity": 5,
 			"position": [
 				0, 1.3, -2
 			]
@@ -36,7 +37,7 @@
 			"albedo": [
 				0.9, 0.4, 0.2
 			],
-			"smooth_shading": false
+			"smooth_shading": true
 		},
 		{
 			"type": "constant",
@@ -84,12 +85,33 @@
 				1, 0, 0
 			],
 			"smooth_shading": true
+		},
+		{
+			"type": "reflective",
+			"albedo": [1,1,1],
+			"ior": 1.5,
+			"smooth_shading": true
 		}
 	],
 	
 	"objects": [
 		{
-			"material_index": 2,		
+			"material_index": 8,
+			"vertices":
+			[
+				-1.5, -1.5, -1.5,
+				-1.5, 1.5, -1.5,
+				1.5, -1.5, -1.5,
+				1.5, 1.5, -1.5
+			],
+			"triangles":
+			[
+				0,1,2,
+				2,1,3
+			]
+		},
+		{
+			"material_index": 0,		
 			"vertices": [
 				0, -0.4999998, -2,
 				0.09754518, -0.4903925, -2,
@@ -580,7 +602,7 @@
 			]
 		},
 		{
-			"material_index": 0,		
+			"material_index": 8,		
 			"vertices": [
 				-1.5, -1.5, -1.5,
 				1.5, -1.5, -1.5,
@@ -594,7 +616,7 @@
 			]
 		},
 		{
-			"material_index": 3,		
+			"material_index": 8,		
 			"vertices": [
 				1.5, -1.5, -1.5,
 				1.5, -1.5, -4.5,
@@ -608,7 +630,7 @@
 			]
 		},
 		{
-			"material_index": 4,		
+			"material_index": 8,		
 			"vertices": [
 				-1.5, -1.5, -1.5,
 				-1.5, -1.5, -4.5,
@@ -622,7 +644,7 @@
 			]
 		},
 		{
-			"material_index": 5,		
+			"material_index": 8,		
 			"vertices": [
 				1.5, -1.5, -4.5,
 				1.5, 1.5, -4.5,
@@ -636,7 +658,7 @@
 			]
 		},
 		{
-			"material_index": 6,		
+			"material_index": 8,		
 			"vertices": [
 				-1.5, 1.5, -1.5,
 				1.5, 1.5, -1.5,
