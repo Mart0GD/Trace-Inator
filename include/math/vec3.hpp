@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <cstdint>
+#include <random>
 
 struct vec3 {
     fp x,y,z;
@@ -15,6 +16,8 @@ struct vec3 {
 
     fp length()         const { return std::sqrt(x * x + y * y + z * z); }
     fp length_pow2()    const { return x * x + y * y + z * z; }
+    bool is_near_zero() const { return abs(x) < 1e-9 && abs(y) < 1e-9 && abs(z) < 1e-9; }
+    bool is_zero() const { return x == 0 && y == 0 && z == 0; }
 
     fp    operator [] (const uint32_t index) const
     {
@@ -29,6 +32,15 @@ struct vec3 {
         x += other.x;
         y += other.y;
         z += other.z;
+
+        return *this;
+    }
+
+    vec3& operator *= (const vec3& other) 
+    {
+        x *= other.x;
+        y *= other.y;
+        z *= other.z;
 
         return *this;
     }
@@ -87,7 +99,7 @@ inline vec3 operator / (const vec3& vec, double scalar)
 
 inline vec3 operator / (double scalar, const vec3& vec)
 {
-    return vec3(1 / vec.x, 1 / vec.y, 1 / vec.z);
+    return vec3(scalar / vec.x, scalar / vec.y, scalar / vec.z);
 }
 
 inline fp dot(const vec3& vec1, const vec3& vec2) {
@@ -110,6 +122,12 @@ inline std::ostream& operator << (std::ostream& os, const vec3& vec)
 {
     os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
     return os;
+}
+
+inline vec3 random_unit_vector(std::mt19937& gen)
+{
+    static thread_local std::normal_distribution<fp> normal(0, 1);
+    return unit_vector(vec3(normal(gen), normal(gen), normal(gen)));
 }
 
 #endif
