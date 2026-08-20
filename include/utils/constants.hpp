@@ -17,7 +17,6 @@
 
 #include <numeric>
 #include <stdexcept>
-#include <random>
 
 // -- CONSTANTS --
 
@@ -55,6 +54,11 @@ inline static constexpr char  JSON_MATERIALS_TYPE[]                 = "type";
 inline static constexpr char  JSON_MATERIALS_ALBEDO[]               = "albedo";
 inline static constexpr char  JSON_MATERIALS_SMOOTH_SHADING[]       = "smooth_shading";
 inline static constexpr char  JSON_MATERIALS_IOR[]                  = "ior";
+inline static constexpr char  JSON_MATERIALS_SMOOTHNESS[]           = "smoothness";
+inline static constexpr char  JSON_MATERIALS_BOUNCE_CHANCE[]        = "bounce_chance";
+inline static constexpr char  JSON_MATERIALS_SPECULAR_COLOR[]       = "specular_color";
+inline static constexpr char  JSON_MATERIALS_EMISSION_COLOR[]       = "emission_color";
+inline static constexpr char  JSON_MATERIALS_EMISSION_STRENGTH[]    = "emission_strength";
 
 inline static constexpr char  JSON_TEXTURES[]                       = "textures";
 inline static constexpr char  JSON_TEXTURES_NAME[]                  = "name";
@@ -73,6 +77,12 @@ inline static constexpr char  JSON_TEXTURES_BITMAP_FILE_PATH[]      = "file_path
 
 
 // -- FUNCTIONS --
+
+template<typename T>
+inline T lerp(T val1, T val2, fp factor)
+{
+    return (1 - factor) * val1 + factor * val2;
+}
 
 inline fp deg_to_rads(fp deg)
 {
