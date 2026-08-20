@@ -71,8 +71,8 @@ bool mesh_triangle::intersects(const ray& r, fp t_min, fp t_max, hit_record& inf
     vec3 smooth_N = unit_vector((1.0 - u - v) * n0 + u * n1 + v * n2);
     point3D interpolatedUV = u * uv1 + v * uv2 + (1 - u - v) * uv0;
 
-    info.geometric_normal = geometric_N;
-    info.hit_normal = smooth_N;
+    info.geometric_normal =  dot(r.direction, geometric_N) > 0 ? -geometric_N : geometric_N;
+    info.hit_normal = dot(r.direction, smooth_N) > 0 ? -smooth_N: smooth_N;
     info.pUV = interpolatedUV;
 
     return true;
