@@ -37,6 +37,28 @@ if(NOT stb_POPULATED)
     FetchContent_Populate(stb)
 endif()
 
+# --- SDL2 (Minimal Configuration) ---
+set(SDL_TEST OFF CACHE BOOL "" FORCE)
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
+# 🛑 ИЗКЛЮЧВАМЕ ВСИЧКО НЕНУЖНО 
+set(SDL_AUDIO OFF CACHE BOOL "" FORCE)    # Решава проблема с Pipewire, ALSA, PulseAudio
+set(SDL_JOYSTICK OFF CACHE BOOL "" FORCE) # Без геймпадове и джойстици
+set(SDL_HAPTIC OFF CACHE BOOL "" FORCE)   # Без вибрации за джойстици
+set(SDL_SENSOR OFF CACHE BOOL "" FORCE)   # Без жироскопи и акселерометри
+set(SDL_POWER OFF CACHE BOOL "" FORCE)    # Без проверки на батерията на лаптопа
+set(SDL_HIDAPI OFF CACHE BOOL "" FORCE)   # Без USB HID интерфейси
+set(SDL_LOCALE OFF CACHE BOOL "" FORCE)   # Без модул за езикови настройки
+set(SDL_MISC OFF CACHE BOOL "" FORCE)     # Без функции като отваряне на URL адреси
+
+FetchContent_Declare(
+    SDL2
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG        release-2.30.10
+)
+FetchContent_MakeAvailable(SDL2)
+
 # Core Logic
 add_library(Core
     src/camera.cpp
@@ -53,6 +75,7 @@ add_library(Core
     src/bvh.cpp
 )
 
+target_link_libraries(Core PUBLIC SDL2::SDL2main SDL2::SDL2-static)
 
 target_include_directories(Core PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
