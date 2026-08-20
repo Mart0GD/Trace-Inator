@@ -124,7 +124,27 @@ ray camera::get_ray(fp u, fp v) const
     out.direction = global_dir;
     out.type = RT_CAMERA;
     out.depth = 0;
+    out.ior = 1;
     out.inv_dir = 1 / out.direction;
 
     return out;        
 }
+
+ void camera::look_at(const point3D& target)
+ {
+    vec3 forward = unit_vector(target - position);
+
+    vec3 world_up = {0, -1, 0};
+    if(std::abs(dot(forward, world_up)) > 0.99) world_up = {0,0,1};
+
+    vec3 right = unit_vector(cross(forward, world_up));
+
+    vec3 down = cross(forward, right);
+
+    rotation_matrix =
+    {
+        right.x,  right.y,  right.z,
+        down.x,   down.y,  down.z,
+        -forward.x, -forward.y, -forward.z
+    };
+ }

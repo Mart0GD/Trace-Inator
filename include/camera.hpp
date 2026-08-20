@@ -6,12 +6,20 @@
 // Forward declaration
 struct parse_ctx;
 
+struct animation_info
+{
+    std::vector<point3D> path;
+    point3D target;
+    int32_t frames;
+};
+
 class camera {
 public:
 
 // -- CORE FUNCTIONALITY --
 
     camera(point3D position = {0,0,0}, fp v_fov = 90);
+    void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
 
     void init(fp width, fp height);
     ray get_ray(const fp u, const fp v) const;
@@ -19,14 +27,12 @@ public:
 //  -- CAMERA MOVEMENT --
 
     void translate(const vec3& dir);
-    
-    void pan(fp degrees);
-    void tilt(fp degrees);
-    void roll(fp degrees);
+    void pan(fp degrees);  // <- rotate around y
+    void tilt(fp degrees); // <- rotate around x
+    void roll(fp degrees); // <- rotate around z
+    void look_at(const point3D& target);
 
-// -- SERIALIZATION --
-
-    void parse_from_json(const rapidjson::Value& root, const parse_ctx& ctx);
+    inline void set_position(const point3D& pos) { this->position = pos;}
 
 private:
 
