@@ -30,6 +30,13 @@ struct light_response
     fp refraction_weight;
 };
 
+struct animation_info
+{
+    std::vector<point3D> path;  // points to interpolate between
+    point3D target;             // point to look at
+    int32_t frames;             // interpolation time
+};
+
 class renderer {
 public:
     void render(int32_t debug_depth = -1);
@@ -72,7 +79,7 @@ private:
     thread_pool pool;
     std::vector<color> image_buffer;
 
-    static constexpr double  BIAS        = 0.001;
+    static constexpr double  BIAS        = 0.01;
     static constexpr size_t  MAX_DEPTH   = 15;  
 };
 

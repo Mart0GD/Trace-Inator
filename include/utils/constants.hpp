@@ -21,7 +21,7 @@
 // -- CONSTANTS --
 
 static constexpr fp           PI = 3.1415926535897932385;
-static constexpr fp           INF = std::numeric_limits<double>::infinity();
+static constexpr fp           INF = std::numeric_limits<fp>::infinity();
 
 static const std::string      SCENE_FILE_PATH                       = "scenes/HW_11";
 

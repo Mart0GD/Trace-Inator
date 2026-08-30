@@ -15,7 +15,7 @@ void bvh::build(const scene& world)
     // Cannot have more than 2 * triangles - 1 nodes
     this->node_pool = arena.alloc<node>(triangles_cnt * 2 - 1); 
 
-    // Allocate pointers for each triangle and default construct them
+    // Allocate pointers for each triangle
     this->triangles = arena.alloc<mesh_triangle>(triangles_cnt, false);
 
     // Index table for triangles
@@ -113,9 +113,9 @@ void bvh::split(const int32_t node_index)
     split(right_child_index);
 }
 
-
 bool bvh::trace(const ray& r, fp t_min, fp t_max, hit_record& info) const
 {
+    // Setup DFS
     int32_t stack[64];
     int32_t top = 0;
 
@@ -124,7 +124,7 @@ bool bvh::trace(const ray& r, fp t_min, fp t_max, hit_record& info) const
     bool intersection = false;
 
     /*
-    *   Do two checks a non-leaf cycle.
+    *   Do two checks on a non-leaf cycle.
     *   it can invalidate the the next one by updating the t_max value saving time ...
     */
     while(top >= 0)
@@ -186,32 +186,6 @@ void bvh::update_bounds(const int32_t node_index)
         n.box.grow_to_include(t);
     }
 }
-
-fp bvh::evaluate_SAH(const node& n, int32_t axis, fp pos) const
-{
-    aabb left, right;
-    int32_t l_cnt = 0;
-    int32_t r_cnt = 0;
-
-    for (size_t i = 0; i < n.triangles_cnt; i++)
-    {
-        const mesh_triangle& t = triangles[t_table[n.index + i]];
-        if(t.get_center()[axis] < pos)
-        {
-            left.grow_to_include(t);
-            ++l_cnt;
-        }
-        else
-        {
-            right.grow_to_include(t);
-            ++r_cnt;
-        }
-    }
-
-    fp cost = l_cnt * left.area() + r_cnt * right.area();
-    return cost > 0 ? cost : 1e30;
-}
-
 
 fp bvh::find_best_split_plane(const node& n, int32_t& split_axis, fp& split_pos) const
 {
@@ -306,7 +280,6 @@ void bvh::get_nodes_at_depth(int node_idx, int curr_depth, int t_depth, std::vec
 bool bvh::trace_debug(const ray& r, fp t_min, fp t_max, hit_record& info, int target_depth) const 
 {
     std::vector<const aabb*> boxes;
-    boxes.reserve(pow(2,target_depth) - 1);
     get_nodes_at_depth(root_index, 0, target_depth, boxes);
 
     bool hit_box = false;

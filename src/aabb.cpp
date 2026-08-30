@@ -15,24 +15,6 @@ bool aabb::is_empty() const
     return p_min.x > p_max.x || p_min.y > p_max.y || p_min.z > p_max.z;
 }
 
-aabb _union(const aabb& box, const point3D& point)
-{
-    aabb ret;
-    ret.p_min = min(box.p_min, point);
-    ret.p_max = max(box.p_max, point);
-
-    return ret; // RVO
-}
-
-aabb _union(const aabb& box1, const aabb& box2)
-{
-    aabb ret;
-    ret.p_min = min(box1.p_min, box2.p_min);
-    ret.p_max = max(box1.p_max, box2.p_max);
-
-    return ret; // RVO
-}
-
 bool inside(const point3D& p, const aabb& box)
 {
     return 
@@ -40,8 +22,10 @@ bool inside(const point3D& p, const aabb& box)
     p.y >= box.p_min.y && p.y <= box.p_max.y &&
     p.z >= box.p_min.z && p.z <= box.p_max.z;
 }
+
 fp intersects(const ray& r, const aabb& box, fp ray_t)
 {   
+    // X
     fp tx1 = (box.p_min.x - r.origin.x) * r.inv_dir.x;
     fp tx2 = (box.p_max.x - r.origin.x) * r.inv_dir.x;
 

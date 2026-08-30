@@ -17,9 +17,7 @@ else {                                      \
 }               
 
 // Standart L1 cache line size
-#ifndef L1_CACHE_LINE_SIZE
 #define L1_CACHE_LINE_SIZE 64
-#endif
 
 // Note: uncomment for debug features
 // #define _DEBUG

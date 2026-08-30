@@ -6,13 +6,6 @@
 // Forward declaration
 struct parse_ctx;
 
-struct animation_info
-{
-    std::vector<point3D> path;
-    point3D target;
-    int32_t frames;
-};
-
 class camera {
 public:
 

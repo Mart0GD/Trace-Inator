@@ -67,6 +67,7 @@ void camera::roll(fp degrees)
 
 void camera::translate(const vec3& dir)
 {
+    // Transform direction from local to global
     const vec3 world_space_dir = dir * rotation_matrix;
     position += world_space_dir;
 }
@@ -130,11 +131,13 @@ ray camera::get_ray(fp u, fp v) const
     return out;        
 }
 
- void camera::look_at(const point3D& target)
- {
+void camera::look_at(const point3D& target)
+{
     vec3 forward = unit_vector(target - position);
 
     vec3 world_up = {0, -1, 0};
+
+    // Edge case when we look parallel to the Y axis, z is up
     if(std::abs(dot(forward, world_up)) > 0.99) world_up = {0,0,1};
 
     vec3 right = unit_vector(cross(forward, world_up));
@@ -147,4 +150,4 @@ ray camera::get_ray(fp u, fp v) const
         down.x,   down.y,  down.z,
         -forward.x, -forward.y, -forward.z
     };
- }
+}

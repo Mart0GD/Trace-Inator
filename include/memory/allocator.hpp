@@ -12,7 +12,6 @@
     Arena based allocator which allows for memory in 16 base 
     aligned contiguous regions
 */
-
 class allocator {
 
     static inline constexpr size_t KiB_256 = 262144;

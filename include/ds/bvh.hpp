@@ -32,7 +32,7 @@ class bvh {
     }; // 32 bytes (half cache line)
 
     /*
-    *   Structure for heuristical spliting of bvh planes
+    *   Structure for heuristical spliting of planes
     */
     struct bin
     {
@@ -62,15 +62,15 @@ private:
     // debug
     void get_nodes_at_depth(int, int, int, std::vector<const aabb*>&) const;
 
-    allocator arena;
-    node* node_pool;
-    mesh_triangle* triangles;
-    uint32_t* t_table; 
+    allocator arena;            // allocator 
+    node* node_pool;            // all the nodes for the tree
+    mesh_triangle* triangles;   // all the triangles inside the tree
+    uint32_t* t_table;          // indexes of the triangles for oredering
 
-    int32_t root_index;
-    int32_t nodes_cnt;
+    int32_t root_index;         // root node index
+    int32_t nodes_cnt;          // count of all the nodes
 
-    static constexpr int32_t MAX_TRIANGLES_PER_NODE = 2;
+    static constexpr int32_t MAX_TRIANGLES_PER_NODE = 2;  
     static constexpr int32_t BINS                   = 4;
 };
 

@@ -45,6 +45,7 @@ private:
         // removes const, constexpr, volotile etc...
         using Type = typename std::remove_cv_t<T>; 
 
+        // zero reserved for nullptr
         if constexpr(std::is_same_v<Type, std::nullptr_t>) return 0;
         return 1 + index_of<Type, Types>::count;
     }

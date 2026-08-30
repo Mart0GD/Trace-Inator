@@ -129,30 +129,6 @@ void scene::parse_from_json(const rapidjson::Value& root)
     }
 }
 
-bool scene::trace(const ray& r, fp t_min, fp t_max, hit_record& rec) const 
-{
-    hit_record tmp_rec;
-    bool hit_anything = false;
-    fp closest_so_far = t_max;
-
-    for(const mesh& m : geometry)
-    {
-        // if(m.trace(r, t_min, closest_so_far, tmp_rec))
-        // {
-        //     // temporary logic --> refractive objects don't stop light
-        //     // TODO: add refractive influence on shadowing
-        //     if(r.type == RT_SHADOW && m.mat->type == MAT_REFRACTIVE) continue;
-
-
-        //     hit_anything = true;
-        //     closest_so_far = tmp_rec.t;
-        //     rec = tmp_rec;
-        // }
-    }
-
-    return hit_anything;
-}
-
 texture_handle scene::get_texture(const std::string& name) const
 {
     for(const texture_handle& txt: textures)

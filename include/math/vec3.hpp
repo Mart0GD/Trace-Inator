@@ -124,6 +124,7 @@ inline std::ostream& operator << (std::ostream& os, const vec3& vec)
     return os;
 }
 
+// https://math.stackexchange.com/a/1585996
 inline vec3 random_unit_vector(std::mt19937& gen)
 {
     static thread_local std::normal_distribution<fp> normal(0, 1);

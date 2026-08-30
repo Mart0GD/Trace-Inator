@@ -54,7 +54,8 @@ void renderer::render(int32_t debug_depth) {
                 if(index >= buckets.size()) break;
 
                 const bucket& b = buckets[index];
-
+                
+                // Render bucket
                 for (int y = b.min_y; y < b.max_y; ++y)
                 {
                     for (int x = b.min_x; x < b.max_x; ++x)
@@ -69,14 +70,16 @@ void renderer::render(int32_t debug_depth) {
                             {
                                 fp offset_x = uniform(gen) - 0.5;
                                 fp offset_y = uniform(gen) - 0.5;
-
+                                
                                 ray r = camera.get_ray(x + offset_x,y + offset_y);
                                 pixel_color += shade(r, gen);
                             }
+
+                            pixel_color /= rpp;
                         #endif
                             
                         size_t index = y * width + x;
-                        image_buffer[index] = pixel_color / rpp;
+                        image_buffer[index] = pixel_color;
                     }
                 }
 
@@ -144,7 +147,7 @@ void renderer::render_sdl() {
         }
     }
 
-    image_buffer = std::vector<color>(width * height, color{0, 0, 0});
+    image_buffer = std::vector<color>(width * height);
     std::vector<uint32_t> pixel_buffer(width * height, 0);
 
     std::atomic<bool> is_running{true};
@@ -261,7 +264,7 @@ color renderer::shade(const ray& r, std::mt19937& rng) const
     bool hit = false;
     const bvh& acc_tree = world->acc_tree;
 
-    if(r.depth >= MAX_DEPTH) return {0,0,0};
+    if(r.depth >= MAX_DEPTH) return get_background(r);
     
     hit = acc_tree.trace(r, 0.001, INF, info);
     if(hit == false) return get_background(r);
@@ -332,6 +335,7 @@ color renderer::shade_diffusive(const ray& r, const hit_record& info, std::mt199
     diffusive_ray.ior = r.ior;
     diffusive_ray.inv_dir = 1 / direction;
 
+    // Indirect light
     color diffuse_light = albedo * shade(diffusive_ray, rng); 
 
     // Get the direct illumination factor
@@ -361,7 +365,7 @@ color renderer::shade_diffusive(const ray& r, const hit_record& info, std::mt199
         direct_light += color(world->lights[i].intensity / sa * albedo * cos);
     }
     // combine
-    return /* diffuse_light + */ direct_light;
+    return diffuse_light + direct_light;
 }
 
 color renderer::shade_reflective(const ray& r, const hit_record& info, std::mt19937& rng) const
@@ -397,9 +401,11 @@ color renderer::shade_refractive(const ray& r, const hit_record& info, std::mt19
     fp n1 = r.ior;
     fp n2 = mat->ior;
 
+    // going out
     if(dot(dir, normal) > 0) 
     {
-        std::swap(n1,n2);
+        n1 = mat->ior;
+        n2 = 1.f;
         normal = -normal;
     }
 
@@ -424,7 +430,7 @@ color renderer::shade_refractive(const ray& r, const hit_record& info, std::mt19
     }
 
     result.inv_dir = 1.0f / result.direction;
-    return shade(result, rng);
+    return albedo * shade(result, rng);
 }
 
 fp renderer::schlick_appx(fp n1, fp n2, fp cos_a) const
@@ -477,10 +483,6 @@ light_response renderer::calculate_fresnel_equasion(const vec3& dir, const vec3&
     }
     else
     {
-        if (n1 > n2)
-        {
-            cos_a =  std::sqrt(1.0 - sin_b_2);
-        }
         res.reflection_weight = schlick_appx(n1, n2, cos_a);
     }
     
@@ -572,7 +574,7 @@ point3D renderer::position_at(const animation_info& info, fp t)
         local_t);
 }
 
-// thanks to wikipedia --> https://en.wikipedia.org/wiki/Catmull%E2%80%93Rom_spline
+// thanks to wikipedia --> https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline
 point3D renderer::catmull_rom(
     const point3D& p0, 
     const point3D& p1, 

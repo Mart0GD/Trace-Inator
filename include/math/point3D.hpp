@@ -3,7 +3,7 @@
 
 #include "math/vec3.hpp"
 
-typedef vec3 point3D;
+using point3D = vec3;
 
 inline fp dist(const point3D& p1, const point3D& p2)
 {

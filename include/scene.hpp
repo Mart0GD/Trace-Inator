@@ -28,22 +28,18 @@ struct scene_settings {
     fp width                = 800;
     fp height               = 400;
     fp bucket_size          = 32;
-    int32_t rpp             = 1;
+    int32_t rpp             = 5;
     color background        = {0,0,0};
     
     void parse_from_json(const rapidjson::Value& info, const parse_ctx& version);
 };
 
 struct scene {
-public:
 
     scene(const std::string& scene_file_name);
     void parse_from_json(const rapidjson::Value& info);
-    
-    bool trace(const ray& r, fp t_min, fp t_max, hit_record& rec) const;
 
     texture_handle get_texture(const std::string& name) const;
-    
     size_t triangles_cnt() const;
     
 // -- SCENE SPECIFIC --

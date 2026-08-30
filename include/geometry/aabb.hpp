@@ -29,12 +29,6 @@ struct aabb {
     fp   area()     const;
 };
 
-// Encompass a new point with the given aabb
-aabb _union(const aabb& box, const point3D& point);
-
-// Encompass two bounding boxes 
-aabb _union(const aabb& box1, const aabb& box2);
-
 // Cheks if a point is inside a bounding box
 bool inside(const point3D& p, const aabb& box);
 
