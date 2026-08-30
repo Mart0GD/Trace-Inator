@@ -15,35 +15,35 @@
 		"matrix":[
 			1,0,0,
 			0,1,0,
-			0,0,1
+			0,0,-1
 		],
 		"position": [
-			0, 10, 0
+			14, 10, -14
 		],
 		"fov": 90
 	},
 	
 	"lights": [
 		{
-			"intensity": 2000,
+			"intensity": 1000,
 			"position": [
 				9, 7, 0
 			]
 		},		
 		{
-			"intensity": 2000,
+			"intensity": 1000,
 			"position": [
 				-9, 16, 0
 			]
 		},
 		{
-			"intensity": 500,
+			"intensity": 50,
 			"position": [
 				0, 9, 7.5
 			]
 		},		
 		{
-			"intensity": 500,
+			"intensity": 50,
 			"position": [
 				0, 9, -7.5
 			]
@@ -60,7 +60,8 @@
 		{
 			"type": "refractive",
 			"ior": 1.5,
-			"smooth_shading": true
+			"albedo": [1,1,1],
+			"smooth_shading": false
 		},
 		{
 			"type": "diffuse",
