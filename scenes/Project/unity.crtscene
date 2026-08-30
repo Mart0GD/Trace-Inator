@@ -65,12 +65,12 @@
 		},
 		{
 			"name": "robo4",
-			"type": "diffuse",
+			"type": "refractive",
 			"ior" : 1,
 			"albedo": [
 				0.55, 0.58, 0.60
 			],
-			"smooth_shading": true
+			"smooth_shading": false
 		}
 	],
 	
